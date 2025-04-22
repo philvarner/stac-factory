@@ -30,6 +30,31 @@ def test_polygon() -> None:
     )
 
 
+def test_polygon_with_holes_raises() -> None:
+    with pytest.raises(ValidationError):
+        Polygon.model_validate(
+            {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [100.0, 0.0],
+                        [101.0, 0.0],
+                        [101.0, 1.0],
+                        [100.0, 1.0],
+                        [100.0, 0.0],
+                    ],
+                    [
+                        [100.8, 0.8],
+                        [100.8, 0.2],
+                        [100.2, 0.2],
+                        [100.2, 0.8],
+                        [100.8, 0.8],
+                    ],
+                ],
+            }
+        )
+
+
 def test_item() -> None:
     Item.model_validate(
         {
