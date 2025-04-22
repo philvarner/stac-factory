@@ -1,6 +1,6 @@
 # Todo
 
-- Finish Item model
+- Finish Item model - bbox
 - add more validation to item model
 - antimeridian checking
 - add reference file tests

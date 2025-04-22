@@ -1,3 +1,4 @@
+from datetime import timezone
 from enum import Enum
 from typing import Annotated, Any, Literal, NamedTuple, TypedDict
 from annotated_types import Ge, Le
@@ -9,7 +10,14 @@ from pydantic import (
     Field,
     model_serializer,
     model_validator,
+    AfterValidator,
+    AwareDatetime,
 )
+
+UtcDatetime = Annotated[
+    AwareDatetime,
+    AfterValidator(lambda d: d.astimezone(timezone.utc)),
+]
 
 
 type Identifier = Annotated[str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$")]
@@ -71,6 +79,20 @@ class BBox2d(BaseModel):
     @model_serializer
     def ser_model(self) -> list[float]:
         return [self.w_lon, self.s_lat, self.e_lon, self.n_lat]
+
+    @classmethod
+    def from_list(cls, coords: list[float]) -> "BBox2d":
+        """Create a BBox2d from a list of coordinates [w_lon, s_lat, e_lon, n_lat]."""
+        if len(coords) != 4:
+            raise ValueError("BBox2d requires exactly 4 coordinates")
+        return cls(w_lon=coords[0], s_lat=coords[1], e_lon=coords[2], n_lat=coords[3])
+
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        """Support validating a list of 4 coordinates as a BBox2d."""
+        if isinstance(obj, list) and len(obj) == 4:
+            return cls.from_list(obj)
+        return super().model_validate(obj, **kwargs)
 
     # todo: loader for array
 
@@ -182,7 +204,7 @@ class Asset(BaseModel):
 
 
 class ItemProperties(TypedDict):
-    datetime: str  # todo: validate
+    datetime: UtcDatetime  # todo: validate
 
 
 type Assets = dict[str, Asset]
@@ -196,7 +218,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     id: ItemIdentifier
     collection: CollectionIdentifier
 
-    # bbox: BBox
+    # bbox: BBox2d
     geometry: Polygon | MultiPolygon
 
     properties: ItemProperties
