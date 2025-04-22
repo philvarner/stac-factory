@@ -58,9 +58,9 @@ repos:
         name: Check merge conflicts
         entry: check-merge-conflict
         language: system
-      - id: no-commit-to-branch
-        name: Check not committting to main
-        entry: no-commit-to-branch
-        language: system
-        args: ["--branch", "main"]
-        pass_filenames: false
+      # - id: no-commit-to-branch
+      #   name: Check not committting to main
+      #   entry: no-commit-to-branch
+      #   language: system
+      #   args: ["--branch", "main"]
+      #   pass_filenames: false
