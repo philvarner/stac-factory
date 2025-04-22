@@ -1,15 +1,25 @@
 from enum import Enum, IntEnum
 from typing import Annotated, Any, Literal, NamedTuple
 from annotated_types import Ge, Le
+from typing import Annotated
+import re
+from pydantic import StringConstraints
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    confloat,
-    field_validator,
     model_serializer,
     model_validator,
 )
+
+
+type Identifier = Annotated[str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$")]
+type StacExtensionIdentifier = Annotated[
+    str, StringConstraints(pattern=r"^[-_.:/a-zA-Z0-9]+$")
+]
+
+type ItemIdentifier = Identifier
+type CollectionIdentifier = Identifier
 
 # float or decimal? Decimal, and add a configuration for how many points
 
@@ -170,16 +180,6 @@ class Asset(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class StacExtensionIdentifier(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-
-class Identifier(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-
-# conforms to REGEXa
-
 type ItemProperties = dict[str, Any]
 # datetime validation
 
@@ -191,17 +191,17 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     type: Literal["Feature"]
     stac_version: Literal["1.1.0"]
     stac_extensions: list[StacExtensionIdentifier] = []
-    id: Identifier
-    collection: Identifier
+    id: ItemIdentifier
+    collection: CollectionIdentifier
 
-    bbox: BBox
-    geometry: Polygon | MultiPolygon
+    # bbox: BBox
+    # geometry: Polygon | MultiPolygon
 
-    properties: ItemProperties
+    # properties: ItemProperties
 
-    assets: Assets
+    # assets: Assets
 
-    links: Links
+    # links: Links
 
     @property
     def __geo_interface__(self) -> dict[str, Any]:
