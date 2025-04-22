@@ -1,9 +1,9 @@
 {
     "type": "Feature",
-    "stac_version": "1.0.0",
+    "stac_version": "1.1.0",
     "id": "S2B_T38XNF_20250422T091553_L2A",
     "properties": {
-        "datetime": "2025-04-22T09:19:42.556000Z",
+        "datetime": "2025-04-22T09:19:42.556000Z"
     },
     "geometry": {
         "type": "Polygon",

@@ -1,5 +1,12 @@
 # stac-factory
 
+Why another Python STAC data model library?
+
+- a
+- b
+- c
+
+correct, not just valid wrt schema
 Refined types "refining types with type-level predicates which constrain
 the set of values described by the refined type"
 

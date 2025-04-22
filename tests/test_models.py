@@ -57,7 +57,14 @@ def test_polygon_with_holes_raises() -> None:
         )
 
 
-def test_item() -> None:
+def test_inprogress_item() -> None:
     fixture_dir = Path(__file__).parent.absolute() / "fixtures"
     item_dict = json.loads(Path(fixture_dir / "inprogress.json").read_text())
+    Item.model_validate(item_dict)
+
+
+@pytest.mark.skip(reason="failing because has elements that are not supported")
+def test_typical() -> None:
+    fixture_dir = Path(__file__).parent.absolute() / "fixtures"
+    item_dict = json.loads(Path(fixture_dir / "typical.json").read_text())
     Item.model_validate(item_dict)

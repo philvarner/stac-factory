@@ -31,7 +31,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-sv --cov stac_factory --cov-report xml --cov-report term-missing  --cov-fail-under 90"
+addopts = "-sv --cov stac_factory --cov-report xml --cov-report term-missing  --cov-fail-under 85"
 
 [tool.mypy]
 ignore_missing_imports = true

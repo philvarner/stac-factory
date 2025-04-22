@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Annotated, Any, Literal, NamedTuple, TypedDict
 from annotated_types import Ge, Le
 from typing import Annotated
-from pydantic import StringConstraints
+from pydantic import StringConstraints, field_validator
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -13,6 +13,9 @@ from pydantic import (
     AfterValidator,
     AwareDatetime,
 )
+
+# STAC Item spec: https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
+# GeoJSON spec: https://datatracker.ietf.org/doc/html/rfc7946
 
 UtcDatetime = Annotated[
     AwareDatetime,
@@ -79,20 +82,6 @@ class BBox2d(BaseModel):
     @model_serializer
     def ser_model(self) -> list[float]:
         return [self.w_lon, self.s_lat, self.e_lon, self.n_lat]
-
-    @classmethod
-    def from_list(cls, coords: list[float]) -> "BBox2d":
-        """Create a BBox2d from a list of coordinates [w_lon, s_lat, e_lon, n_lat]."""
-        if len(coords) != 4:
-            raise ValueError("BBox2d requires exactly 4 coordinates")
-        return cls(w_lon=coords[0], s_lat=coords[1], e_lon=coords[2], n_lat=coords[3])
-
-    @classmethod
-    def model_validate(cls, obj, **kwargs):
-        """Support validating a list of 4 coordinates as a BBox2d."""
-        if isinstance(obj, list) and len(obj) == 4:
-            return cls.from_list(obj)
-        return super().model_validate(obj, **kwargs)
 
     # todo: loader for array
 
@@ -212,20 +201,61 @@ type Links = list[Link]
 
 
 class Item(BaseModel):  # , Generic[Geom, Props]):
+    # REQUIRED. Type of the GeoJSON Object. MUST be set to Feature.
     type: Literal["Feature"]
-    stac_version: Literal["1.1.0"]
-    stac_extensions: list[StacExtensionIdentifier] = []
-    id: ItemIdentifier
-    collection: CollectionIdentifier
 
-    # bbox: BBox2d
+    # REQUIRED. The STAC version the Item implements.
+    stac_version: Literal["1.1.0"]
+
+    # A list of extensions the Item implements.
+    stac_extensions: list[StacExtensionIdentifier] = Field(default_factory=list)
+
+    # REQUIRED. Provider identifier. The ID should be unique within the Collection that contains the Item.
+    id: ItemIdentifier
+
+    # REQUIRED. Defines the full footprint of the asset represented by this item, formatted according to
+    # RFC 7946, section 3.1 if a geometry is provided or section 3.2 if no geometry is provided.
+    # section 3.1: Geometry definitions and  section 3.2: null
     geometry: Polygon | MultiPolygon
 
+    # REQUIRED if geometry is not null, prohibited if geometry is null. Bounding Box of the asset
+    # represented by this Item, formatted according to RFC 7946, section 5.
+    bbox: BBox
+
+    # REQUIRED. A dictionary of additional metadata for the Item.
     properties: ItemProperties
 
+    # REQUIRED. List of link objects to resources and related URLs. See the best practices
+    # https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#use-of-links
+    # for details on when the use self links is strongly recommended.
+    links: Links
+
+    # REQUIRED. Dictionary of asset objects that can be downloaded, each with a unique key.
     assets: Assets
 
-    links: Links
+    # The id of the STAC Collection this Item references to. This field is required if a
+    # link with a collection relation type is present and is not allowed otherwise.
+    collection: CollectionIdentifier | None = None
+
+    @field_validator("bbox", mode="before")
+    @classmethod
+    def f(cls, v: list[float]) -> BBox2d | BBox3d:
+        if isinstance(v, list):
+            match len(v):
+                case 4:
+                    return BBox2d(w_lon=v[0], s_lat=v[1], e_lon=v[2], n_lat=v[3])
+                case 6:
+                    return BBox3d(
+                        w_lon=v[0],
+                        s_lat=v[1],
+                        top_elevation=v[2],
+                        e_lon=v[3],
+                        n_lat=v[4],
+                        bottom_elevation=v[5],
+                    )
+                case _:
+                    raise ValueError("BBox requires exactly 4 or 6 coordinates")
+        return v
 
     @property
     def __geo_interface__(self) -> dict[str, Any]:

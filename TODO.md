@@ -1,6 +1,15 @@
 # Todo
 
-- Finish Item model - bbox
+Milestones:
+
+- validate minimal with assets
+- with links
+- Validate S2 object
+
+Todo:
+
+- developing example for Readme
+- replace ItemProperties with flat structure
 - add more validation to item model
 - antimeridian checking
 - add reference file tests
@@ -8,4 +17,6 @@
 - benchmarking
 - extensions
 - pypi
-- code cov
+- test geometry and bbox variations
+- validate geometry or bbox
+- add reference to stac spec to code
