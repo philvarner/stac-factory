@@ -1,5 +1,15 @@
 # stac-factory
 
+Refined types "refining types with type-level predicates which constrain
+the set of values described by the refined type"
+
+types are refined, and then can be constructed into a high-quality finished
+product
+
+<https://nikita-volkov.github.io/refined/>
+<https://github.com/nikita-volkov/refined>
+<https://github.com/fthomas/refined>
+
 Opinionated.
 
 A tightly-typed model for creating STAC Items.
@@ -9,6 +19,8 @@ Performance is not a driving concern, correctness is.
 no primitives! all values are constrained in some way
 
 "flat" model - properties are not nested in the object model
+
+immutable, but not perfect.
 
 ## Possible errors
 

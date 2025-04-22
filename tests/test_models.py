@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from pydantic import ValidationError
 import pytest
 from stac_factory.models import BBox, BBox2d, Item, Lat, Lon, Polygon
@@ -56,23 +58,6 @@ def test_polygon_with_holes_raises() -> None:
 
 
 def test_item() -> None:
-    Item.model_validate(
-        {
-            "type": "Feature",
-            "stac_version": "1.1.0",
-            "id": "S2B_T38XNF_20250422T091553_L2A",
-            "stac_extensions": [
-                "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
-                "https://stac-extensions.github.io/file/v2.1.0/schema.json",
-                "https://stac-extensions.github.io/grid/v1.1.0/schema.json",
-                "https://stac-extensions.github.io/mgrs/v1.0.0/schema.json",
-                "https://stac-extensions.github.io/processing/v1.1.0/schema.json",
-                "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
-                "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
-                "https://stac-extensions.github.io/sentinel-2/v1.0.0/schema.json",
-                "https://stac-extensions.github.io/storage/v1.0.0/schema.json",
-                "https://stac-extensions.github.io/view/v1.0.0/schema.json",
-            ],
-            "collection": "sentinel-2-c1-l2a",
-        }
-    )
+    fixture_dir = Path(__file__).parent.absolute() / "fixtures"
+    item_dict = json.loads(Path(fixture_dir / "inprogress.json").read_text())
+    Item.model_validate(item_dict)

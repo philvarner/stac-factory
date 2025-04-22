@@ -7,3 +7,5 @@
 - add lots of reference files
 - benchmarking
 - extensions
+- pypi
+- code cov

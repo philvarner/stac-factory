@@ -1,8 +1,10 @@
 [project]
 name = "stac-factory"
 version = "0.1.0"
-description = "Add your description here"
+description = "Refined Pydantic models for constructing STAC Items"
 readme = "README.md"
+authors = [{ name = "Phil Varner", email = "philvarner@gmail.com" }]
+maintainers = [{ name = "Phil Varner", email = "philvarner@gmail.com" }]
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 dependencies = [
@@ -28,8 +30,8 @@ dev = [
     # "types-pyRFC3339>=1.1.1",
 ]
 
-# [tool.pytest.ini_options]
-# addopts = "-sv --cov stac_factory --cov-report xml --cov-report term-missing  --cov-fail-under 95"
+[tool.pytest.ini_options]
+addopts = "-sv --cov stac_factory --cov-report xml --cov-report term-missing  --cov-fail-under 90"
 
 [tool.mypy]
 ignore_missing_imports = true

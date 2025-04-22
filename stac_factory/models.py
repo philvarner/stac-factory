@@ -1,8 +1,7 @@
-from enum import Enum, IntEnum
-from typing import Annotated, Any, Literal, NamedTuple
+from enum import Enum
+from typing import Annotated, Any, Literal, NamedTuple, TypedDict
 from annotated_types import Ge, Le
 from typing import Annotated
-import re
 from pydantic import StringConstraints
 from pydantic import (
     BaseModel,
@@ -73,7 +72,9 @@ class BBox2d(BaseModel):
     def ser_model(self) -> list[float]:
         return [self.w_lon, self.s_lat, self.e_lon, self.n_lat]
 
-    model_config = ConfigDict(extra="forbid")
+    # todo: loader for array
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class BBox3d(BBox2d):
@@ -150,7 +151,7 @@ class Polygon(BaseModel):
             ],
         )
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class MultiPolygon(BaseModel):
@@ -169,19 +170,20 @@ class MultiPolygon(BaseModel):
 
     #         return coordinates
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class Link(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class Asset(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
-type ItemProperties = dict[str, Any]
-# datetime validation
+class ItemProperties(TypedDict):
+    datetime: str  # todo: validate
+
 
 type Assets = dict[str, Asset]
 type Links = list[Link]
@@ -195,13 +197,13 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     collection: CollectionIdentifier
 
     # bbox: BBox
-    # geometry: Polygon | MultiPolygon
+    geometry: Polygon | MultiPolygon
 
-    # properties: ItemProperties
+    properties: ItemProperties
 
-    # assets: Assets
+    assets: Assets
 
-    # links: Links
+    links: Links
 
     @property
     def __geo_interface__(self) -> dict[str, Any]:
@@ -209,7 +211,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
 
     # collection/c_link validator
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 # class ItemWithoutCollection(Item):
