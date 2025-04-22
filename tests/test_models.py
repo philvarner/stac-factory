@@ -1,6 +1,6 @@
 from pydantic import ValidationError
 import pytest
-from phil_stac.models import BBox, BBox2d, Item, Lat, Lon, Polygon
+from stac_factory.models import BBox, BBox2d, Item, Lat, Lon, Polygon
 
 
 def test_1() -> None:
