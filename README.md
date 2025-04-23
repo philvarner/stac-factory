@@ -6,7 +6,7 @@
 [![Documentation](https://readthedocs.org/projects/stac-factory/badge/?version=stable)](https://stac-factory.readthedocs.io)
 [![codecov](https://codecov.io/gh/philvarner/stac-factory/branch/main/graph/badge.svg)](https://codecov.io/gh/philvarner/stac-factory)
 
-[STAC Factory Logo](./stac-factory-logo.jpg)
+![STAC Factory Logo](./stac-factory-logo.jpg)
 
 > [!TIP]
 > Tip!
