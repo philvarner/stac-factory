@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Annotated, Any, Literal, NamedTuple, TypedDict
 from annotated_types import Ge, Le
 from typing import Annotated
-from pydantic import StringConstraints, field_validator
+from pydantic import Strict, StringConstraints, field_validator
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -23,9 +23,11 @@ UtcDatetime = Annotated[
 ]
 
 
-type Identifier = Annotated[str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$")]
+type Identifier = Annotated[
+    str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()
+]
 type StacExtensionIdentifier = Annotated[
-    str, StringConstraints(pattern=r"^[-_.:/a-zA-Z0-9]+$")
+    str, StringConstraints(pattern=r"^[-_.:/a-zA-Z0-9]+$")  # todo: URI
 ]
 
 type ItemIdentifier = Identifier
@@ -85,7 +87,7 @@ class BBox2d(BaseModel):
 
     # todo: loader for array
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
 class BBox3d(BBox2d):
@@ -109,8 +111,6 @@ class BBox3d(BBox2d):
             self.top_elevation,
         ]
 
-
-type BBox = BBox2d | BBox3d
 
 Position2D = NamedTuple("Position2D", [("longitude", Lon), ("latitude", Lat)])
 Position3D = NamedTuple(
@@ -148,7 +148,7 @@ class Polygon(BaseModel):
         return self.model_dump(mode="json")
 
     @classmethod
-    def from_bbox(cls, bbox: BBox) -> "Polygon":
+    def from_bbox(cls, bbox: BBox2d | BBox3d) -> "Polygon":
         return cls(
             type="Polygon",
             coordinates=[
@@ -162,7 +162,7 @@ class Polygon(BaseModel):
             ],
         )
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
 class MultiPolygon(BaseModel):
@@ -181,22 +181,50 @@ class MultiPolygon(BaseModel):
 
     #         return coordinates
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
 class Link(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    # https://github.com/radiantearth/stac-spec/blob/master/commons/links.md#link-object
+    #      "rel", required
+    # "href" required
+    # "type":
+    #             "title": {
+    #             "method": {
+    #             "headers": string or array of string
+    #             "body": any type
+    # self must be a uri
+
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
 class Asset(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    #  "href": {  "type": "string"
+    #             "title": {  "type": "string"
+    #             "description": {  "type": "string"
+    #             "type": {  "type": "string"
+    #             "roles": { #               "type": "array", #                 "type": "string"
+
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
 class ItemProperties(TypedDict):
+    # REQUIRED. The searchable date and time of the assets, which must be in UTC.
+    # It is formatted according to RFC 3339, section 5.6. null is allowed, but
+    # requires start_datetime and end_datetime from common metadata to be set.
     datetime: UtcDatetime  # todo: validate
+
+    # datetime is not null or all three defined and s & e not null
+    #                         "datetime",
+    #                     "start_datetime",
+    #                     "end_datetime"
+    # must be utc
 
 
 type Assets = dict[str, Asset]
+# https://github.com/radiantearth/stac-spec/blob/master/commons/assets.md
+
+
 type Links = list[Link]
 
 
@@ -208,6 +236,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     stac_version: Literal["1.1.0"]
 
     # A list of extensions the Item implements.
+    # -- unique and URI
     stac_extensions: list[StacExtensionIdentifier] = Field(default_factory=list)
 
     # REQUIRED. Provider identifier. The ID should be unique within the Collection that contains the Item.
@@ -216,11 +245,12 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     # REQUIRED. Defines the full footprint of the asset represented by this item, formatted according to
     # RFC 7946, section 3.1 if a geometry is provided or section 3.2 if no geometry is provided.
     # section 3.1: Geometry definitions and  section 3.2: null
+    # -- GeometryCollection is disallowed, but no one uses the others either
     geometry: Polygon | MultiPolygon
 
     # REQUIRED if geometry is not null, prohibited if geometry is null. Bounding Box of the asset
     # represented by this Item, formatted according to RFC 7946, section 5.
-    bbox: BBox
+    bbox: BBox2d | BBox3d
 
     # REQUIRED. A dictionary of additional metadata for the Item.
     properties: ItemProperties
@@ -235,11 +265,12 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
 
     # The id of the STAC Collection this Item references to. This field is required if a
     # link with a collection relation type is present and is not allowed otherwise.
+    # TODO - different than I expected!
     collection: CollectionIdentifier | None = None
 
     @field_validator("bbox", mode="before")
     @classmethod
-    def f(cls, v: list[float]) -> BBox2d | BBox3d:
+    def bbox_field_validator(cls, v: list[float]) -> BBox2d | BBox3d:
         if isinstance(v, list):
             match len(v):
                 case 4:
@@ -257,6 +288,11 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                     raise ValueError("BBox requires exactly 4 or 6 coordinates")
         return v
 
+    # Assets & Properties bands
+    # If there is no asset with bands...
+    #     ... then bands are not allowed in properties...
+    #     ... otherwise bands are allowed in properties.
+
     @property
     def __geo_interface__(self) -> dict[str, Any]:
         return self.model_dump(mode="json")
@@ -264,11 +300,3 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     # collection/c_link validator
 
     model_config = ConfigDict(extra="forbid", frozen=True)
-
-
-# class ItemWithoutCollection(Item):
-#     collection: Identifier | None
-#     bbox: BBox | None
-#     geometry: Polygon | MultiPolygon | None
-
-#     model_config = ConfigDict(extra="forbid")

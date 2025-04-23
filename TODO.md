@@ -8,6 +8,17 @@ Milestones:
 
 Todo:
 
+- start_datetime and end_datetime
+- review best practices https://github.com/radiantearth/stac-spec/blob/master/best-practices.md
+- review Asset
+- review Link
+- implement Link
+- implement Asset
+- common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
+- Extensions https://github.com/radiantearth/stac-spec/blob/master/extensions/README.md
+  - EO
+  - View
+- fix ci
 - developing section
 - example for Readme
 - replace ItemProperties with flat structure

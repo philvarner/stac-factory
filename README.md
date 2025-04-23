@@ -8,21 +8,26 @@
 
 ![STAC Factory Logo](./stac-factory-logo.jpg)
 
-> [!TIP]
-> Tip!
-
-some text
-
-> [!NOTE]
-> Note!
-
-Why another Python STAC data model library?
-
-- a
-- b
-- c
+## Overview
 
 correct, not just valid wrt schema
+
+## Installation
+
+STAC Factory is published as `stac-factory` in PyPi.
+
+## Why another Python STAC data model library?
+
+Other libraries, such as pystac and stac-pydantic, are built for general-purpose use
+and have relatively lax typing and validation. This aligns with the robustness principle (Postel's law)
+of "be conservative in what you do, be liberal in what you accept from others". Since most consumers of
+STAC objects have no control over the contents of the JSON-serialized objects, the libraries are liberal
+in what they accept, and will try to read anything.  However, they leave the "conservative in what you do"
+part up to the user -- they will also serialize any in-memory object to JSON, and leave it up to the rest
+of the application to validate it is correct.
+
+By comparison, STAC Factory is intended only for creating STAC entities and strongly validating correctness.
+
 Refined types "refining types with type-level predicates which constrain
 the set of values described by the refined type"
 
@@ -81,9 +86,9 @@ pre-commit install
 
 Borrows heavily from:
 
-- geojson-pydantic (MIT) Copyright (c) 2020 Development Seed
-- stac-pydantic (MIT) Copyright (c) 2020 Arturo AI
 - pystac  (Apache-2.0) Copyright 2019-2024 the authors
+- stac-pydantic (MIT) Copyright (c) 2020 Arturo AI
+- geojson-pydantic (MIT) Copyright (c) 2020 Development Seed
 - [rustac](https://github.com/stac-utils/rustac) (Apache-2.0, MIT) n/a
 - [stac4s](https://github.com/stac-utils/stac4s) (Apache-2.0) n/a
 - [Data.Geospatial](https://hackage.haskell.org/package/geojson-4.1.1/docs/Data-Geospatial.html)

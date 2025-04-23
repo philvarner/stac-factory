@@ -39,3 +39,13 @@
             ]
         }
     },
+
+
+
+> [!TIP]
+> Tip!
+
+some text
+
+> [!NOTE]
+> Note!

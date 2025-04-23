@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from pydantic import ValidationError
 import pytest
-from stac_factory.models import BBox, BBox2d, Item, Lat, Lon, Polygon
+from stac_factory.models import BBox2d, Item, Polygon
 
 
 def test_1() -> None:
