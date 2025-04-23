@@ -1,4 +1,12 @@
-# stac-factory
+# STAC Factory
+
+[![CI](https://github.com/philvarner/stac-factory/actions/workflows/ci.yml/badge.svg)](https://github.com/philvarner/stac-factory/actions/workflows/continuous-integration.yml)
+[![Release](https://github.com/philvarner/stac-factory/actions/workflows/release.yml/badge.svg)](https://github.com/philvarner/stac-factory/actions/workflows/release.yml)
+[![PyPI version](https://badge.fury.io/py/stac-factory.svg)](https://badge.fury.io/py/stac-factory)
+[![Documentation](https://readthedocs.org/projects/stac-factory/badge/?version=stable)](https://stac-factory.readthedocs.io)
+[![codecov](https://codecov.io/gh/philvarner/stac-factory/branch/main/graph/badge.svg)](https://codecov.io/gh/philvarner/stac-factory)
+
+[STAC Factory Logo](stac-factory-logo.jpg)
 
 Why another Python STAC data model library?
 
@@ -31,6 +39,15 @@ immutable, but not perfect.
 
 ## Possible errors
 
+Sources:
+
+- <https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md>
+- <https://github.com/radiantearth/stac-spec/tree/master/item-spec/json-schema>
+- <https://github.com/radiantearth/stac-spec/blob/master/best-practices.md>
+- <https://github.com/stac-utils/stac-check>
+
+Issues:
+
 - ID
 - Collection
   - must have link (or something)
@@ -43,6 +60,8 @@ immutable, but not perfect.
   - wind clockwise instead of ccw
   - Polygon spans antimeridian -> MP
   - pole issues
+- Other
+  - proj:centroid doesnt' have the lat and lon attributes reversed
 
 ## Developing
 

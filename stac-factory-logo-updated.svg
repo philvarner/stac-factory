@@ -1,0 +1,154 @@
+<svg viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect x="0" y="0" width="1000" height="420" fill="#0a192f" />
+
+  <!-- Stars in background -->
+  <g id="stars">
+    <circle cx="100" cy="50" r="1" fill="white" opacity="0.8" />
+    <circle cx="150" cy="80" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="200" cy="40" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="250" cy="100" r="1" fill="white" opacity="0.8" />
+    <circle cx="300" cy="70" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="350" cy="30" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="400" cy="90" r="1" fill="white" opacity="0.8" />
+    <circle cx="450" cy="60" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="500" cy="20" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="550" cy="110" r="1" fill="white" opacity="0.8" />
+    <circle cx="600" cy="50" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="650" cy="40" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="700" cy="100" r="1" fill="white" opacity="0.8" />
+    <circle cx="750" cy="70" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="800" cy="30" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="850" cy="90" r="1" fill="white" opacity="0.8" />
+    <circle cx="900" cy="60" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="950" cy="20" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="120" cy="150" r="1" fill="white" opacity="0.8" />
+    <circle cx="220" cy="180" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="320" cy="140" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="420" cy="200" r="1" fill="white" opacity="0.8" />
+    <circle cx="520" cy="170" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="620" cy="130" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="720" cy="190" r="1" fill="white" opacity="0.8" />
+    <circle cx="820" cy="160" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="920" cy="120" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="170" cy="300" r="1" fill="white" opacity="0.8" />
+    <circle cx="270" cy="270" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="370" cy="330" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="470" cy="290" r="1" fill="white" opacity="0.8" />
+    <circle cx="570" cy="320" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="670" cy="280" r="0.8" fill="white" opacity="0.9" />
+    <circle cx="770" cy="340" r="1" fill="white" opacity="0.8" />
+    <circle cx="870" cy="310" r="1.2" fill="white" opacity="0.7" />
+    <circle cx="970" cy="270" r="0.8" fill="white" opacity="0.9" />
+  </g>
+
+  <!-- Earth representation -->
+  <circle cx="500" cy="240" r="80" fill="#1a4d7c" />
+  <path d="M430 225 Q500 270 570 225" fill="none" stroke="#64a9d9" stroke-width="6" />
+  <path d="M440 260 Q500 300 560 260" fill="none" stroke="#64a9d9" stroke-width="4" />
+  <path d="M450 285 Q500 320 550 285" fill="none" stroke="#64a9d9" stroke-width="3" />
+
+  <!-- Factory Structure -->
+  <g id="factory">
+    <!-- Main building -->
+    <rect x="800" y="280" width="120" height="60" fill="#3d4852" stroke="#2c3e50" stroke-width="1" />
+
+    <!-- Windows -->
+    <rect x="810" y="290" width="15" height="20" fill="#64e2ff" opacity="0.7" />
+    <rect x="835" y="290" width="15" height="20" fill="#64e2ff" opacity="0.7" />
+    <rect x="860" y="290" width="15" height="20" fill="#64e2ff" opacity="0.7" />
+    <rect x="885" y="290" width="15" height="20" fill="#64e2ff" opacity="0.7" />
+
+    <!-- Factory door -->
+    <rect x="835" y="320" width="25" height="20" fill="#2c3e50" />
+
+    <!-- Factory roof -->
+    <polygon points="790,280 860,250 930,280" fill="#2c3e50" />
+
+    <!-- Smokestacks -->
+    <rect x="820" y="240" width="10" height="30" fill="#3d4852" />
+    <rect x="850" y="230" width="10" height="40" fill="#3d4852" />
+    <rect x="880" y="245" width="10" height="25" fill="#3d4852" />
+
+    <!-- Smoke -->
+    <circle cx="825" cy="235" r="5" fill="white" opacity="0.3" />
+    <circle cx="820" cy="230" r="4" fill="white" opacity="0.2" />
+    <circle cx="830" cy="225" r="6" fill="white" opacity="0.2" />
+
+    <circle cx="855" cy="225" r="5" fill="white" opacity="0.3" />
+    <circle cx="850" cy="220" r="4" fill="white" opacity="0.2" />
+    <circle cx="860" cy="215" r="6" fill="white" opacity="0.2" />
+
+    <circle cx="885" cy="240" r="5" fill="white" opacity="0.3" />
+    <circle cx="880" cy="235" r="4" fill="white" opacity="0.2" />
+    <circle cx="890" cy="230" r="6" fill="white" opacity="0.2" />
+  </g>
+
+  <!-- Satellite in orbit -->
+  <g id="satellite">
+    <!-- Satellite body -->
+    <rect x="620" y="170" width="30" height="12" fill="#d1d1d1" rx="2" />
+
+    <!-- Solar panels -->
+    <rect x="650" y="165" width="40" height="8" fill="#4a90e2" stroke="#2c3e50" stroke-width="1" />
+    <rect x="580" y="165" width="40" height="8" fill="#4a90e2" stroke="#2c3e50" stroke-width="1" />
+
+    <!-- Antenna -->
+    <line x1="635" y1="170" x2="635" y2="155" stroke="#d1d1d1" stroke-width="1.5" />
+    <circle cx="635" cy="153" r="3" fill="#d1d1d1" />
+
+    <!-- Time-sequence effect (multiple positions) -->
+    <rect x="600" y="190" width="20" height="8" fill="#d1d1d1" rx="2" opacity="0.4" />
+    <rect x="580" y="210" width="15" height="6" fill="#d1d1d1" rx="2" opacity="0.2" />
+    <rect x="640" y="150" width="25" height="10" fill="#d1d1d1" rx="2" opacity="0.6" />
+  </g>
+
+  <!-- Data Beam from Satellite to Factory -->
+  <g id="data-beam">
+    <!-- Main beam -->
+    <path d="M635 182 L810 280" stroke="#64e2ff" stroke-width="2" stroke-dasharray="8,4" opacity="0.8" />
+
+    <!-- Data particles -->
+    <circle cx="655" cy="202" r="2" fill="#64e2ff" opacity="0.9" />
+    <circle cx="675" cy="212" r="2" fill="#64e2ff" opacity="0.9" />
+    <circle cx="695" cy="222" r="2" fill="#64e2ff" opacity="0.9" />
+    <circle cx="715" cy="232" r="2" fill="#64e2ff" opacity="0.9" />
+    <circle cx="735" cy="242" r="2" fill="#64e2ff" opacity="0.9" />
+    <circle cx="755" cy="252" r="2" fill="#64e2ff" opacity="0.9" />
+    <circle cx="775" cy="262" r="2" fill="#64e2ff" opacity="0.9" />
+    <circle cx="795" cy="272" r="2" fill="#64e2ff" opacity="0.9" />
+
+    <!-- Signal pulse animation effect -->
+    <circle cx="665" cy="204" r="4" fill="none" stroke="#64e2ff" stroke-width="1" opacity="0.5" />
+    <circle cx="705" cy="227" r="6" fill="none" stroke="#64e2ff" stroke-width="1" opacity="0.5" />
+    <circle cx="745" cy="247" r="8" fill="none" stroke="#64e2ff" stroke-width="1" opacity="0.5" />
+    <circle cx="785" cy="267" r="6" fill="none" stroke="#64e2ff" stroke-width="1" opacity="0.5" />
+
+    <!-- Data processing glow around factory -->
+    <circle cx="810" cy="280" r="12" fill="#64e2ff" opacity="0.2" />
+  </g>
+
+  <!-- Orbit path -->
+  <ellipse cx="500" cy="240" rx="180" ry="100" fill="none" stroke="#64e2ff" stroke-width="1.5" stroke-dasharray="5,5" opacity="0.6" />
+
+  <!-- Time dimension visualization -->
+  <g id="time-dimension">
+    <line x1="320" y1="340" x2="680" y2="340" stroke="#64e2ff" stroke-width="2" />
+    <polygon points="320,340 330,335 330,345" fill="#64e2ff" />
+    <polygon points="680,340 670,335 670,345" fill="#64e2ff" />
+
+    <!-- Time markers -->
+    <line x1="380" y1="335" x2="380" y2="345" stroke="#64e2ff" stroke-width="2" />
+    <line x1="440" y1="335" x2="440" y2="345" stroke="#64e2ff" stroke-width="2" />
+    <line x1="500" y1="335" x2="500" y2="345" stroke="#64e2ff" stroke-width="2" />
+    <line x1="560" y1="335" x2="560" y2="345" stroke="#64e2ff" stroke-width="2" />
+    <line x1="620" y1="335" x2="620" y2="345" stroke="#64e2ff" stroke-width="2" />
+
+    <text x="330" y="330" fill="#64e2ff" font-family="Arial, sans-serif" font-size="12">t₁</text>
+    <text x="620" y="330" fill="#64e2ff" font-family="Arial, sans-serif" font-size="12">t₂</text>
+  </g>
+
+  <!-- Logo text -->
+  <text x="500" y="385" fill="#ffffff" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle">STAC FACTORY</text>
+  <text x="500" y="410" fill="#64e2ff" font-family="Arial, sans-serif" font-size="14" text-anchor="middle">CORRECT, NOT JUST VALID</text>
+</svg>
