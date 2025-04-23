@@ -8,7 +8,8 @@ Milestones:
 
 Todo:
 
-- developing example for Readme
+- developing section
+- example for Readme
 - replace ItemProperties with flat structure
 - add more validation to item model
 - antimeridian checking

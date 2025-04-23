@@ -86,3 +86,5 @@ Borrows heavily from:
 - pystac  (Apache-2.0) Copyright 2019-2024 the authors
 - [rustac](https://github.com/stac-utils/rustac) (Apache-2.0, MIT) n/a
 - [stac4s](https://github.com/stac-utils/stac4s) (Apache-2.0) n/a
+- [Data.Geospatial](https://hackage.haskell.org/package/geojson-4.1.1/docs/Data-Geospatial.html)
+  (Haskell) (BSD-style)
