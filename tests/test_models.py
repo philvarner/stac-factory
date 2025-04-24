@@ -1,8 +1,12 @@
 import json
+
 from pathlib import Path
-from pydantic import ValidationError
+
 import pytest
-from stac_factory.models import BBox2d, Item, Polygon, BBox3d
+
+from pydantic import ValidationError
+
+from stac_factory.models import BBox2d, BBox3d, Item, Polygon
 
 
 def test_bbox2d() -> None:
@@ -16,7 +20,7 @@ def test_bbox2d() -> None:
     assert bbox.model_dump(mode="json") == [-150, 40, -148, 42]
 
 
-def test_bbox2dWithInvertedLatitude() -> None:
+def test_bbox2d_with_inverted_latitude() -> None:
     with pytest.raises(ValidationError) as e:
         BBox2d(w_lon=0, e_lon=1, s_lat=1, n_lat=0)
     assert "South latitude must be less than or equal to north latitude" in str(e.value)
@@ -41,7 +45,7 @@ def test_bbox3d() -> None:
     assert bbox.model_dump(mode="json") == [-150, 40, -1, -148, 42, 1000]
 
 
-def test_bbox3dWithInvertedElevation() -> None:
+def test_bbox3d_with_inverted_elevation() -> None:
     with pytest.raises(ValidationError) as e:
         BBox3d(w_lon=0, e_lon=1, s_lat=0, n_lat=1, bottom_elevation=1, top_elevation=0)
     assert "Bottom elevation is above top elevation" in str(e.value)
@@ -51,9 +55,7 @@ def test_polygon() -> None:
     Polygon.model_validate(
         {
             "type": "Polygon",
-            "coordinates": [
-                [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]
-            ],
+            "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
         }
     )
 
@@ -131,7 +133,5 @@ def test_typical() -> None:
 @pytest.mark.skip(reason="failing because has elements that are not supported")
 def test_sentinel_2_item() -> None:
     fixture_dir = Path(__file__).parent.absolute() / "fixtures"
-    item_dict = json.loads(
-        Path(fixture_dir / "S2B_T38XNF_20250422T091553_L2A.json").read_text()
-    )
+    item_dict = json.loads(Path(fixture_dir / "S2B_T38XNF_20250422T091553_L2A.json").read_text())
     Item.model_validate(item_dict)

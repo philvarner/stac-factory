@@ -1,25 +1,24 @@
 from datetime import timezone
-from enum import Enum
-from typing import Annotated, Any, Literal, NamedTuple, TypedDict
+from typing import Annotated, Literal, NamedTuple, TypedDict
+
 from annotated_types import Ge, Le
-from typing import Annotated
-from pydantic import Strict, StringConstraints, field_validator
 from pydantic import (
+    AfterValidator,
+    AwareDatetime,
     BaseModel,
     ConfigDict,
     Field,
+    Strict,
+    StringConstraints,
+    field_validator,
     model_serializer,
     model_validator,
-    AfterValidator,
-    AwareDatetime,
 )
 
 # STAC Item spec: https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
 # GeoJSON spec: https://datatracker.ietf.org/doc/html/rfc7946
 
-type Identifier = Annotated[
-    str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()
-]
+type Identifier = Annotated[str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
 type StacExtensionIdentifier = Annotated[
     str, StringConstraints(pattern=r"^[-_.:/a-zA-Z0-9]+$")  # todo: URI
 ]
@@ -49,9 +48,7 @@ class BBox2d(BaseModel):
     @model_validator(mode="after")
     def validate_relative_latitudes(self):
         if self.s_lat > self.n_lat:
-            raise ValueError(
-                "South latitude must be less than or equal to north latitude"
-            )
+            raise ValueError("South latitude must be less than or equal to north latitude")
         return self
 
     @model_serializer
@@ -85,18 +82,21 @@ class BBox3d(BBox2d):
         ]
 
 
-Position2D = NamedTuple("Position2D", [("longitude", Lon), ("latitude", Lat)])
-Position3D = NamedTuple(
-    "Position3D", [("longitude", Lon), ("latitude", Lat), ("elevation", Elevation)]
-)
+class Position2D(NamedTuple):
+    longitude: Lon
+    latitude: Lat
+
+
+class Position3D(NamedTuple):
+    longitude: Lon
+    latitude: Lat
+    elevation: Elevation
+
+
 type Position = Position2D | Position3D
 
-type LinearRingCoordinates = Annotated[
-    list[Position], Field(min_length=4, max_length=512)
-]
-type PolygonCoordinates = Annotated[
-    list[LinearRingCoordinates], Field(min_length=1, max_length=1)
-]
+type LinearRingCoordinates = Annotated[list[Position], Field(min_length=4, max_length=512)]
+type PolygonCoordinates = Annotated[list[LinearRingCoordinates], Field(min_length=1, max_length=1)]
 # type MultiPolygonCoordinates = Annotated[
 #     list[PolygonCoordinates], Field(min_length=1, max_length=2)
 # ]

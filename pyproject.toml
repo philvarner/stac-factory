@@ -38,7 +38,54 @@ ignore_missing_imports = true
 exclude = ["tests", ".venv"]
 
 [tool.ruff]
-line-length = 88
+line-length = 120
+
+[tool.ruff.format]
+quote-style = 'double'
 
 [tool.ruff.lint]
-select = []
+select = [
+    'ARG',
+    'B',
+    'C4',
+    'C90',
+    'DTZ',
+    'E',
+    'F',
+    'FA',
+    'G',
+    'I',
+    'INP',
+    'N',
+    'NPY',
+    'PT',
+    'PTH',
+    'RET',
+    'RUF',
+    'S',
+    'SIM',
+    'T20',
+    'UP',
+    'W',
+]
+ignore = [
+    "RET505"
+]
+
+exclude = []
+
+[tool.ruff.lint.per-file-ignores]
+'__init__.py' = ['E402']
+'**/tests/**/*' = ['T201', 'S101']
+
+[tool.ruff.lint.isort]
+lines-between-types = 1
+
+[tool.pymarkdown]
+plugins.md013.line_length = 120
+
+[tool.vulture]
+ignore_names = ["cls"]
+min_confidence = 80
+sort_by_size = true
+# verbose = true
