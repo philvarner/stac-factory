@@ -49,3 +49,45 @@ some text
 
 > [!NOTE]
 > Note!
+
+class Accuracy(Enum):
+    # | Decimal Places | Degrees      | Distance  |
+    # |---------------|--------------|-----------|
+    # | 0             | 1.0          | 111 km    |
+    # | 1             | 0.1          | 11.1 km   |
+    # | 2             | 0.01         | 1.11 km   |
+    # | 3             | 0.001        | 111 m     |
+    # | 4             | 0.0001       | 11.1 m    |
+    # | 5             | 0.00001      | 1.11 m    |
+    # | 6             | 0.000001     | 111 mm    |
+    # | 7             | 0.0000001    | 11.1 mm   |
+    # | 8             | 0.00000001   | 1.11 mm   |
+
+    # in meters
+    _0_00111 = 8
+    _0_0111 = 7
+    _0_111 = 6
+    _1_11 = 5
+    _11_1 = 4
+    _111 = 3
+    _1110 = 2
+    _11100 = 1
+    _111000 = 0
+
+# class MultiPolygon(BaseModel):
+#     type: Literal["MultiPolygon"]
+#     coordinates: MultiPolygonCoordinates
+
+#     @property
+#     def __geo_interface__(self) -> dict[str, Any]:
+#         return self.model_dump(mode="json")
+
+#     #     @field_validator("coordinates")
+#     #     def check_closure(cls, coordinates: List) -> List:
+#     #         """Validate that Polygon is closed (first and last coordinate are the same)."""
+#     #         if any(ring[-1] != ring[0] for polygon in coordinates for ring in polygon):
+#     #             raise ValueError("All linear rings have the same start and end coordinates")
+
+#     #         return coordinates
+
+#     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)

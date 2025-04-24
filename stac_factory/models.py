@@ -17,12 +17,6 @@ from pydantic import (
 # STAC Item spec: https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
 # GeoJSON spec: https://datatracker.ietf.org/doc/html/rfc7946
 
-UtcDatetime = Annotated[
-    AwareDatetime,
-    AfterValidator(lambda d: d.astimezone(timezone.utc)),
-]
-
-
 type Identifier = Annotated[
     str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()
 ]
@@ -33,33 +27,12 @@ type StacExtensionIdentifier = Annotated[
 type ItemIdentifier = Identifier
 type CollectionIdentifier = Identifier
 
+type UtcDatetime = Annotated[
+    AwareDatetime,
+    AfterValidator(lambda d: d.astimezone(timezone.utc)),
+]
+
 # float or decimal? Decimal, and add a configuration for how many points
-
-
-class Accuracy(Enum):
-    # | Decimal Places | Degrees      | Distance  |
-    # |---------------|--------------|-----------|
-    # | 0             | 1.0          | 111 km    |
-    # | 1             | 0.1          | 11.1 km   |
-    # | 2             | 0.01         | 1.11 km   |
-    # | 3             | 0.001        | 111 m     |
-    # | 4             | 0.0001       | 11.1 m    |
-    # | 5             | 0.00001      | 1.11 m    |
-    # | 6             | 0.000001     | 111 mm    |
-    # | 7             | 0.0000001    | 11.1 mm   |
-    # | 8             | 0.00000001   | 1.11 mm   |
-
-    # in meters
-    _0_00111 = 8
-    _0_0111 = 7
-    _0_111 = 6
-    _1_11 = 5
-    _11_1 = 4
-    _111 = 3
-    _1110 = 2
-    _11100 = 1
-    _111000 = 0
-
 
 type Lat = Annotated[float, Ge(-90.0), Le(90)]
 type Lon = Annotated[float, Ge(-180.0), Le(180)]
@@ -91,8 +64,8 @@ class BBox2d(BaseModel):
 
 
 class BBox3d(BBox2d):
-    top_elevation: Elevation
     bottom_elevation: Elevation
+    top_elevation: Elevation
 
     @model_validator(mode="after")
     def validate_relative_elevations(self):
@@ -124,9 +97,9 @@ type LinearRingCoordinates = Annotated[
 type PolygonCoordinates = Annotated[
     list[LinearRingCoordinates], Field(min_length=1, max_length=1)
 ]
-type MultiPolygonCoordinates = Annotated[
-    list[PolygonCoordinates], Field(min_length=1, max_length=2)
-]
+# type MultiPolygonCoordinates = Annotated[
+#     list[PolygonCoordinates], Field(min_length=1, max_length=2)
+# ]
 
 
 class Polygon(BaseModel):
@@ -143,43 +116,24 @@ class Polygon(BaseModel):
 
     #         return coordinates
 
-    @property
-    def __geo_interface__(self) -> dict[str, Any]:
-        return self.model_dump(mode="json")
+    # @property
+    # def __geo_interface__(self) -> dict[str, Any]:
+    #     return self.model_dump(mode="json")
 
-    @classmethod
-    def from_bbox(cls, bbox: BBox2d | BBox3d) -> "Polygon":
-        return cls(
-            type="Polygon",
-            coordinates=[
-                [
-                    Position2D(bbox.w_lon, bbox.s_lat),
-                    Position2D(bbox.e_lon, bbox.s_lat),
-                    Position2D(bbox.e_lon, bbox.n_lat),
-                    Position2D(bbox.w_lon, bbox.n_lat),
-                    Position2D(bbox.w_lon, bbox.s_lat),
-                ]
-            ],
-        )
-
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
-
-
-class MultiPolygon(BaseModel):
-    type: Literal["MultiPolygon"]
-    coordinates: MultiPolygonCoordinates
-
-    @property
-    def __geo_interface__(self) -> dict[str, Any]:
-        return self.model_dump(mode="json")
-
-    #     @field_validator("coordinates")
-    #     def check_closure(cls, coordinates: List) -> List:
-    #         """Validate that Polygon is closed (first and last coordinate are the same)."""
-    #         if any(ring[-1] != ring[0] for polygon in coordinates for ring in polygon):
-    #             raise ValueError("All linear rings have the same start and end coordinates")
-
-    #         return coordinates
+    # @classmethod
+    # def from_bbox(cls, bbox: BBox2d | BBox3d) -> "Polygon":
+    #     return cls(
+    #         type="Polygon",
+    #         coordinates=[
+    #             [
+    #                 Position2D(bbox.w_lon, bbox.s_lat),
+    #                 Position2D(bbox.e_lon, bbox.s_lat),
+    #                 Position2D(bbox.e_lon, bbox.n_lat),
+    #                 Position2D(bbox.w_lon, bbox.n_lat),
+    #                 Position2D(bbox.w_lon, bbox.s_lat),
+    #             ]
+    #         ],
+    #     )
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
@@ -246,7 +200,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     # RFC 7946, section 3.1 if a geometry is provided or section 3.2 if no geometry is provided.
     # section 3.1: Geometry definitions and  section 3.2: null
     # -- GeometryCollection is disallowed, but no one uses the others either
-    geometry: Polygon | MultiPolygon
+    geometry: Polygon  # | MultiPolygon
 
     # REQUIRED if geometry is not null, prohibited if geometry is null. Bounding Box of the asset
     # represented by this Item, formatted according to RFC 7946, section 5.
@@ -279,10 +233,10 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                     return BBox3d(
                         w_lon=v[0],
                         s_lat=v[1],
-                        top_elevation=v[2],
+                        bottom_elevation=v[2],
                         e_lon=v[3],
                         n_lat=v[4],
-                        bottom_elevation=v[5],
+                        top_elevation=v[5],
                     )
                 case _:
                     raise ValueError("BBox requires exactly 4 or 6 coordinates")
@@ -293,9 +247,9 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     #     ... then bands are not allowed in properties...
     #     ... otherwise bands are allowed in properties.
 
-    @property
-    def __geo_interface__(self) -> dict[str, Any]:
-        return self.model_dump(mode="json")
+    # @property
+    # def __geo_interface__(self) -> dict[str, Any]:
+    #     return self.model_dump(mode="json")
 
     # collection/c_link validator
 

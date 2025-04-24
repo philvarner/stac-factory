@@ -9,29 +9,29 @@ license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2.11.3",
-    "antimeridian>=0.4.1",
-    "shapely>=2.1.0",
+    # "antimeridian>=0.4.1",
+    # "shapely>=2.1.0",
     # "jsonschema>=4.19.1",
 ]
 
 [dependency-groups]
 dev = [
-    "pre-commit>=4.2.0",
-    "pre-commit-hooks>=5.0.0",
-    "pytest-sugar>=1.0.0",
-    "pytest>=8",
-    "pytest-cov>=4.1.0",
-    # "types-jsonschema>=4.19.0.3",
-    "ruff>=0.9.0",
     "mypy>=1.15.0",
     "nox>=2024.4.15",
+    "pre-commit>=4.2.0",
+    "pre-commit-hooks>=5.0.0",
     "pymarkdownlnt>=0.9.25",
+    "pytest>=8",
+    "pytest-cov>=4.1.0",
+    "pytest-sugar>=1.0.0",
+    "ruff>=0.9.0",
+    # "types-jsonschema>=4.19.0.3",
     # "pyrfc3339>=1.1",
     # "types-pyRFC3339>=1.1.1",
 ]
 
 [tool.pytest.ini_options]
-addopts = "-sv --cov stac_factory --cov-report xml --cov-report term-missing  --cov-fail-under 85"
+addopts = "-sv --cov stac_factory --cov-report html --cov-report term --cov-fail-under 100"
 
 [tool.mypy]
 ignore_missing_imports = true
