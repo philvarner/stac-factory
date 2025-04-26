@@ -6,29 +6,83 @@ Milestones:
 - with links
 - Validate S2 object
 
+Decisions:
+
+- do I want to require a dependency on pystac? Proves they're not conflicting
+
 Todo:
 
-- start_datetime and end_datetime
-- review best practices https://github.com/radiantearth/stac-spec/blob/master/best-practices.md
+- pystac constants for roles https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#list-of-asset-roles
+
+ensure these are all in pystac
+
+image/tiff; application=geotiff	GeoTIFF with standardized georeferencing metadata
+image/tiff; application=geotiff; profile=cloud-optimized	Cloud Optimized GeoTIFF (unofficial). Once there is an official media type it will be added and the custom media type here will be deprecated.
+image/jp2	JPEG 2000
+image/png	Visual PNGs (e.g. thumbnails)
+image/jpeg	Visual JPEGs (e.g. thumbnails, oblique)
+text/xml or application/xml	XML metadata RFC 7303
+application/json	A JSON file (often metadata, or labels)
+text/plain	Plain text (often metadata)
+application/geo+json	GeoJSON
+application/geopackage+sqlite3	GeoPackage
+application/x-hdf5	Hierarchical Data Format version 5
+application/x-hdf	Hierarchical Data Format versions 4 and earlier.
+application/vnd.laszip+copc	COPC Cloud optimized PointCloud
+application/vnd.apache.parquet	Apache Geoparquet
+application/3dtiles+json	OGC 3D Tiles
+application/vnd.pmtiles	Protomaps PMTiles
+
+
+- example for Readme
+- developing section
+- common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
+- test geometry and bbox variations
+- validate geometry or bbox
+- add reference to stac spec to code
+- benchmarking
+- constants for media types https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#common-media-types-in-stac
+- best practices https://github.com/radiantearth/stac-spec/blob/master/best-practices.md
+  - searchable identifiers lowercase characters, numbers, _, and -
+  - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands
+  - eo:bands and raster:bands -> bands
+- stac-check checks
+- test to construct Item using objects
+- re-add MultiPolygon
+- re-add all commented code
+- start_datetime and end_datetime -- dt within sdt edt, null rules
 - review Asset
+  - datetime: Provide individual timestamp on an Item, in case the Item has a start_datetime and end_datetime, but an Asset is for one specific time.
+  - gsd (Common Metadata): Specify some assets that represent instruments with different spatial resolution than the overall best resolution. Note this should not be used for different spatial resolutions due to specific processing of assets - look into the raster extension for that use case.
+  - bands (e.g. in combination with the EO extension): Provide spectral band information, and order of bands, within an individual asset.
+  - proj:code/proj:wkt2/proj:projjson (projection extension): Specify different projection for some assets. If the projection is different for all assets it should probably not be provided as an Item property. If most assets are one projection, and there is a single reprojected version (such as a Web Mercator preview image), it is sensible to specify the main projection in the Item and the alternate projection for the affected asset(s).
+  - proj:shape/proj:transform (projection extension): If assets have different spatial resolutions and slightly different exact bounding boxes, specify these per asset to indicate the size of the asset in pixels and its exact GeoTransform in the native projection.
+  - sar:polarizations (sar extension): Provide the polarization content and ordering of a specific asset.
+  - sar:product_type (sar extension): If mixing multiple product types within a single Item, this can be used to specify the product_type for each asset.
+  - role - must have data?
+    - EO Extension
+    - View Extension
+    - SAR Extension
 - review Link
+  - link title
+  - media types - fail on bad ones, warn on unknown ones
+  - deprecated: image/vnd.stac.geotiff and Cloud Optimized GeoTiffs used image/vnd.stac.geotiff; profile=cloud-optimized.
+
 - implement Link
 - implement Asset
-- common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
+- allow use of PySTAC Extensions + Augments
 - Extensions https://github.com/radiantearth/stac-spec/blob/master/extensions/README.md
   - EO
   - View
-- fix ci
-- developing section
-- example for Readme
-- replace ItemProperties with flat structure
+
 - add more validation to item model
 - antimeridian checking
 - add reference file tests
 - add lots of reference files
-- benchmarking
-- extensions
 - pypi
-- test geometry and bbox variations
-- validate geometry or bbox
-- add reference to stac spec to code
+
+Low priority:
+
+- is lat/long float or decimal? Decimal, and add a configuration for how many points
+- replace ItemProperties with flat structure
+- don't `stac_` things

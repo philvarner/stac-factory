@@ -4,6 +4,7 @@ from typing import Annotated, Literal, NamedTuple, TypedDict
 from annotated_types import Ge, Le
 from pydantic import (
     AfterValidator,
+    AnyUrl,
     AwareDatetime,
     BaseModel,
     ConfigDict,
@@ -15,71 +16,37 @@ from pydantic import (
     model_validator,
 )
 
+from stac_factory.constants import HttpMethod
+
 # STAC Item spec: https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
+# schemas: https://github.com/radiantearth/stac-spec/tree/master/item-spec/json-schema
 # GeoJSON spec: https://datatracker.ietf.org/doc/html/rfc7946
 
-type Identifier = Annotated[str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
+# todo work on this
+
+
+# Basic JSON object type annotation
+type JSONValue = str | int | float | bool | None | dict[str, "JSONValue"] | list["JSONValue"]
+type JSONObject = dict[str, JSONValue]
+
+
 type StacExtensionIdentifier = Annotated[
     str, StringConstraints(pattern=r"^[-_.:/a-zA-Z0-9]+$")  # todo: URI
 ]
 
+type Identifier = Annotated[str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
+
 type ItemIdentifier = Identifier
-type CollectionIdentifier = Identifier
 
-type UtcDatetime = Annotated[
-    AwareDatetime,
-    AfterValidator(lambda d: d.astimezone(timezone.utc)),
-]
+# URI regex pattern per RFC 3986
+# type Uri = Annotated[
+#     str, StringConstraints(pattern=r"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$"), Strict()
+# ]
 
-# float or decimal? Decimal, and add a configuration for how many points
 
 type Lat = Annotated[float, Ge(-90.0), Le(90)]
 type Lon = Annotated[float, Ge(-180.0), Le(180)]
 type Elevation = Annotated[float, Ge(-10_000_000.0), Le(10_000_000.0)]
-
-
-class BBox2d(BaseModel):
-    # [sw_lon, sw_lat, ne_lon, ne_lat]
-    w_lon: Lon
-    s_lat: Lat
-    e_lon: Lon
-    n_lat: Lat
-
-    @model_validator(mode="after")
-    def validate_relative_latitudes(self):
-        if self.s_lat > self.n_lat:
-            raise ValueError("South latitude must be less than or equal to north latitude")
-        return self
-
-    @model_serializer
-    def ser_model(self) -> list[float]:
-        return [self.w_lon, self.s_lat, self.e_lon, self.n_lat]
-
-    # todo: loader for array
-
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
-
-
-class BBox3d(BBox2d):
-    bottom_elevation: Elevation
-    top_elevation: Elevation
-
-    @model_validator(mode="after")
-    def validate_relative_elevations(self):
-        if self.top_elevation <= self.bottom_elevation:
-            raise ValueError("Bottom elevation is above top elevation")
-        return self
-
-    @model_serializer
-    def ser_model(self) -> list[float]:
-        return [
-            self.w_lon,
-            self.s_lat,
-            self.bottom_elevation,
-            self.e_lon,
-            self.n_lat,
-            self.top_elevation,
-        ]
 
 
 class Position2D(NamedTuple):
@@ -138,28 +105,55 @@ class Polygon(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
-class Link(BaseModel):
-    # https://github.com/radiantearth/stac-spec/blob/master/commons/links.md#link-object
-    #      "rel", required
-    # "href" required
-    # "type":
-    #             "title": {
-    #             "method": {
-    #             "headers": string or array of string
-    #             "body": any type
-    # self must be a uri
+class BBox2d(BaseModel):
+    # [sw_lon, sw_lat, ne_lon, ne_lat]
+    w_lon: Lon
+    s_lat: Lat
+    e_lon: Lon
+    n_lat: Lat
+
+    @model_validator(mode="after")
+    def validate_relative_latitudes(self):
+        if self.s_lat > self.n_lat:
+            raise ValueError("South latitude must be less than or equal to north latitude")
+        return self
+
+    @model_serializer
+    def ser_model(self) -> list[float]:
+        return [self.w_lon, self.s_lat, self.e_lon, self.n_lat]
+
+    # todo: loader for array
 
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
-class Asset(BaseModel):
-    #  "href": {  "type": "string"
-    #             "title": {  "type": "string"
-    #             "description": {  "type": "string"
-    #             "type": {  "type": "string"
-    #             "roles": { #               "type": "array", #                 "type": "string"
+class BBox3d(BBox2d):
+    # [sw_lon, sw_lat, bottom_elevation, ne_lon, ne_lat, top_elevation]
+    bottom_elevation: Elevation
+    top_elevation: Elevation
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    @model_validator(mode="after")
+    def validate_relative_elevations(self):
+        if self.top_elevation <= self.bottom_elevation:
+            raise ValueError("Bottom elevation is above top elevation")
+        return self
+
+    @model_serializer
+    def ser_model(self) -> list[float]:
+        return [
+            self.w_lon,
+            self.s_lat,
+            self.bottom_elevation,
+            self.e_lon,
+            self.n_lat,
+            self.top_elevation,
+        ]
+
+
+type UtcDatetime = Annotated[
+    AwareDatetime,
+    AfterValidator(lambda d: d.astimezone(timezone.utc)),
+]
 
 
 class ItemProperties(TypedDict):
@@ -175,23 +169,149 @@ class ItemProperties(TypedDict):
     # must be utc
 
 
-type Assets = dict[str, Asset]
+type URI = AnyUrl
+
+
+# Media type regex based on RFC 6838 syntax
+type MediaType = Annotated[
+    str, StringConstraints(pattern=r"^[a-zA-Z0-9][-a-zA-Z0-9.+]*/[a-zA-Z0-9][-a-zA-Z0-9.+]*(?:;.*)?$"), Strict()
+]
+
+type Title = Annotated[str, StringConstraints(min_length=1, max_length=100), Strict()]
+type Description = Annotated[str, StringConstraints(min_length=1, max_length=10000), Strict()]
+
+
+class StacElement(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
+
+class Commons(StacElement): ...
+
+
+class Link(Commons):
+    # https://github.com/radiantearth/stac-spec/blob/master/commons/links.md#link-object
+
+    # REQUIRED. The actual link in the format of an URL. Relative and absolute links are both allowed.
+    # Trailing slashes are significant.
+    href: URI
+
+    # REQUIRED. Relationship between the current document and the linked document.
+    # See chapter "Relation types" for more information.
+    # TODO "Link with relationship `self` must be absolute URI",
+    rel: URI  # or any uri? todo
+
+    # todo: these are all optional -- allow or should they be?
+
+    # Media type of the referenced entity.
+    type: MediaType
+
+    # A human readable title to be used in rendered displays of the link.
+    title: Title
+
+    # The HTTP method that shall be used for the request to the target resource, in uppercase. GET by default
+    method: HttpMethod
+
+    # The HTTP headers to be sent for the request to the target resource.
+    headers: dict[str, str | list[str]]
+
+    # The HTTP body to be sent to the target resource.
+    body: str | JSONObject
+
+
+type AssetName = Annotated[str, StringConstraints(min_length=1, max_length=32, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
+
+type Role = Annotated[str, StringConstraints(pattern=r"^[-a-zA-Z0-9]+$"), Strict()]
+type Roles = set[Role]
+
+
 # https://github.com/radiantearth/stac-spec/blob/master/commons/assets.md
+class Asset(BaseModel):
+    # REQUIRED. URI to the asset object. Relative and absolute URI are both allowed. Trailing slashes are significant.
+    href: URI
+
+    # The displayed title for clients and users.
+    title: Title
+
+    # A description of the Asset providing additional details, such as how it was processed or created. CommonMark 0.29
+    # syntax MAY be used for rich text representation.
+    description: Description
+
+    # Media type of the asset. See the common media types in the best practice doc for commonly used asset types.
+    type: MediaType
+
+    # The semantic roles of the asset, similar to the use of rel in links.
+    roles: Roles
+
+    #  "href": {  "type": "string"
+    #             "title": {  "type": "string"
+    #             "description": {  "type": "string"
+    #             "type": {  "type": "string"
+    #             "roles": { #               "type": "array", #                 "type": "string"
+
+    # "asset": {
+    #       "allOf": [
+    #         {
+    #           "type": "object",
+    #           "required": [
+    #             "href"
+    #           ],
+    #           "properties": {
+    #             "href": {
+    #               "title": "Asset reference",
+    #               "type": "string",
+    #               "format": "iri-reference",
+    #               "minLength": 1
+    #             },
+    #             "title": {
+    #               "title": "Asset title",
+    #               "type": "string"
+    #             },
+    #             "description": {
+    #               "title": "Asset description",
+    #               "type": "string"
+    #             },
+    #             "type": {
+    #               "title": "Asset type",
+    #               "type": "string"
+    #             },
+    #             "roles": {
+    #               "title": "Asset roles",
+    #               "type": "array",
+    #               "items": {
+    #                 "type": "string"
+    #               }
+    #             }
+    #           }
+    #         },
+    #         {
+    #           "$ref": "common.json"
+    #         }
+    #       ]
+    #     }
+
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
-type Links = list[Link]
+type CollectionIdentifier = Identifier
 
 
 class Item(BaseModel):  # , Generic[Geom, Props]):
     # REQUIRED. Type of the GeoJSON Object. MUST be set to Feature.
-    type: Literal["Feature"]
+    type: Literal["Feature"] = Field(default="Feature")
 
     # REQUIRED. The STAC version the Item implements.
-    stac_version: Literal["1.1.0"]
+    stac_version: Literal["1.1.0"] = Field(alias="stac_version", default="1.1.0")
 
     # A list of extensions the Item implements.
     # -- unique and URI
     stac_extensions: list[StacExtensionIdentifier] = Field(default_factory=list)
+
+    @field_validator("stac_extensions")
+    @classmethod
+    def validate_unique_stac_extensions(cls, v: list[StacExtensionIdentifier]) -> list[StacExtensionIdentifier]:
+        if len(v) != len(set(v)):
+            raise ValueError("stac_extensions must contain unique items")
+        return v
 
     # REQUIRED. Provider identifier. The ID should be unique within the Collection that contains the Item.
     id: ItemIdentifier
@@ -205,22 +325,6 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     # REQUIRED if geometry is not null, prohibited if geometry is null. Bounding Box of the asset
     # represented by this Item, formatted according to RFC 7946, section 5.
     bbox: BBox2d | BBox3d
-
-    # REQUIRED. A dictionary of additional metadata for the Item.
-    properties: ItemProperties
-
-    # REQUIRED. List of link objects to resources and related URLs. See the best practices
-    # https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#use-of-links
-    # for details on when the use self links is strongly recommended.
-    links: Links
-
-    # REQUIRED. Dictionary of asset objects that can be downloaded, each with a unique key.
-    assets: Assets
-
-    # The id of the STAC Collection this Item references to. This field is required if a
-    # link with a collection relation type is present and is not allowed otherwise.
-    # TODO - different than I expected!
-    collection: CollectionIdentifier | None = None
 
     @field_validator("bbox", mode="before")
     @classmethod
@@ -241,6 +345,22 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                 case _:
                     raise ValueError("BBox requires exactly 4 or 6 coordinates")
         return v
+
+    # REQUIRED. A dictionary of additional metadata for the Item.
+    properties: ItemProperties
+
+    # REQUIRED. List of link objects to resources and related URLs. See the best practices
+    # https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#use-of-links
+    # for details on when the use self links is strongly recommended.
+    links: list[Link]
+
+    # REQUIRED. Dictionary of asset objects that can be downloaded, each with a unique key.
+    assets: dict[AssetName, Asset]
+
+    # The id of the STAC Collection this Item references to. This field is required if a
+    # link with a collection relation type is present and is not allowed otherwise.
+    # TODO - different than I expected!
+    collection: CollectionIdentifier | None = None
 
     # Assets & Properties bands
     # If there is no asset with bands...

@@ -91,3 +91,40 @@ class Accuracy(Enum):
 #     #         return coordinates
 
 #     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
+
+
+
+
+extra fields
+
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
+from typing import Any, Dict
+
+class ModelWithExtraFields(BaseModel):
+    # Regular fields
+    id: str
+    name: str
+
+    # Dict to store unknown properties
+    extra_fields: Dict[str, Any] = Field(default_factory=dict, exclude=True)
+
+    model_config = ConfigDict(
+        # Allow extra fields (don't raise error for unknown fields)
+        extra="allow"
+    )
+
+    @model_validator(mode="after")
+    def extract_extra_fields(self, data: Any) -> "ModelWithExtraFields":
+        # Move any extra fields to the extra_fields dict
+        known_fields = self.model_fields.keys()
+        for field_name, value in dict(data).items():
+            if field_name not in known_fields:
+                self.extra_fields[field_name] = value
+        return self
+
+    @field_serializer("extra_fields")
+    def serialize_extra_fields(self, extra_fields: Dict[str, Any]) -> None:
+        # This prevents extra_fields from being included in serialized output
+        # Extra fields are already mixed in with the regular fields
+        return None

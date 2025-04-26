@@ -85,12 +85,6 @@ def test_polygon_with_holes_raises() -> None:
         )
 
 
-def test_minimal_item() -> None:
-    fixture_dir = Path(__file__).parent.absolute() / "fixtures"
-    item_dict = json.loads(Path(fixture_dir / "minimal.json").read_text())
-    Item.model_validate(item_dict)
-
-
 def test_bbox3d_item() -> None:
     fixture_dir = Path(__file__).parent.absolute() / "fixtures"
     item_dict = json.loads(Path(fixture_dir / "minimal.json").read_text())
@@ -105,6 +99,12 @@ def test_item_with_invalid_bbox() -> None:
     with pytest.raises(ValidationError) as e:
         Item.model_validate(item_dict)
     assert "BBox requires exactly 4 or 6 coordinates" in str(e.value)
+
+
+def test_minimal_item() -> None:
+    fixture_dir = Path(__file__).parent.absolute() / "fixtures"
+    item_dict = json.loads(Path(fixture_dir / "minimal.json").read_text())
+    Item.model_validate(item_dict)
 
 
 def test_item_with_null_bbox() -> None:
@@ -135,3 +135,18 @@ def test_sentinel_2_item() -> None:
     fixture_dir = Path(__file__).parent.absolute() / "fixtures"
     item_dict = json.loads(Path(fixture_dir / "S2B_T38XNF_20250422T091553_L2A.json").read_text())
     Item.model_validate(item_dict)
+
+
+def test_minimal_item_obj() -> None:
+    Item(
+        stac_extensions=[],
+        id="minimal-item",
+        geometry={
+            "type": "Polygon",
+            "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
+        },
+        properties={"datetime": "2021-01-01T00:00:00Z"},
+        bbox=[100, 0, 101, 1],
+        assets={},
+        links=[],
+    )
