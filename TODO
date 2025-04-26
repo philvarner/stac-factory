@@ -12,23 +12,20 @@ Decisions:
 
 Todo:
 
-- pystac constants for roles https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#list-of-asset-roles
 - developing section
+- pystac constants for roles https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#list-of-asset-roles
 - common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
 - test geometry and bbox variations
 - validate geometry or bbox
-- add reference to stac spec to code
+- start_datetime and end_datetime -- dt within sdt edt, null rules
 - benchmarking
 - constants for media types https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#common-media-types-in-stac
 - best practices https://github.com/radiantearth/stac-spec/blob/master/best-practices.md
   - searchable identifiers lowercase characters, numbers, _, and -
   - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands
   - eo:bands and raster:bands -> bands
-- stac-check checks
-- test to construct Item using objects
 - re-add MultiPolygon
 - re-add all commented code
-- start_datetime and end_datetime -- dt within sdt edt, null rules
 - review Asset
   - datetime: Provide individual timestamp on an Item, in case the Item has a start_datetime and end_datetime, but an Asset is for one specific time.
   - gsd (Common Metadata): Specify some assets that represent instruments with different spatial resolution than the overall best resolution. Note this should not be used for different spatial resolutions due to specific processing of assets - look into the raster extension for that use case.
@@ -64,3 +61,28 @@ Low priority:
 - is lat/long float or decimal? Decimal, and add a configuration for how many points
 - replace ItemProperties with flat structure
 - don't `stac_` things
+
+stac-check
+
+Items
+
+
+            def check_bloated_links(self, max_links: Optional[int] = 20) -> bool:
+thumbnail is
+                        "png" in self.data["assets"]["thumbnail"]["type"]
+                        or "jpeg" in self.data["assets"]["thumbnail"]["type"]
+                        or "jpg" in self.data["assets"]["thumbnail"]["type"]
+                        or "webp" in self.data["assets"]["thumbnail"]["type"]
+
+
+
+
+Collections:
+
+    def check_summaries(self) -> bool:
+        """Check if a Collection asset has a "summaries" property.
+
+C& C
+
+- link title
+- self link? required?
