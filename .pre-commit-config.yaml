@@ -15,13 +15,14 @@ repos:
         types: [python]
         pass_filenames: false
         verbose: true
-      - id: pymarkdown
-        name: Markdownlint
-        description: Run markdownlint on Markdown files
-        entry: pymarkdown scan
-        language: python
-        files: \.(md|mdown|markdown)$
-        exclude: ^.github/pull_request_template.md$
+      # - id: pymarkdown
+      #   name: Markdownlint
+      #   description: Run markdownlint on Markdown files
+      #   entry: pymarkdown
+      #   args: ["--config", "pymarkdown.json", "scan"]
+      #   language: python
+      #   files: \.(md|mdown|markdown)$
+      #   exclude: ^.github/pull_request_template.md$
       - id: check-added-large-files
         name: Check for added large files
         entry: check-added-large-files

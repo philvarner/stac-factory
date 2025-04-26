@@ -13,28 +13,6 @@ Decisions:
 Todo:
 
 - pystac constants for roles https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#list-of-asset-roles
-
-ensure these are all in pystac
-
-image/tiff; application=geotiff	GeoTIFF with standardized georeferencing metadata
-image/tiff; application=geotiff; profile=cloud-optimized	Cloud Optimized GeoTIFF (unofficial). Once there is an official media type it will be added and the custom media type here will be deprecated.
-image/jp2	JPEG 2000
-image/png	Visual PNGs (e.g. thumbnails)
-image/jpeg	Visual JPEGs (e.g. thumbnails, oblique)
-text/xml or application/xml	XML metadata RFC 7303
-application/json	A JSON file (often metadata, or labels)
-text/plain	Plain text (often metadata)
-application/geo+json	GeoJSON
-application/geopackage+sqlite3	GeoPackage
-application/x-hdf5	Hierarchical Data Format version 5
-application/x-hdf	Hierarchical Data Format versions 4 and earlier.
-application/vnd.laszip+copc	COPC Cloud optimized PointCloud
-application/vnd.apache.parquet	Apache Geoparquet
-application/3dtiles+json	OGC 3D Tiles
-application/vnd.pmtiles	Protomaps PMTiles
-
-
-- example for Readme
 - developing section
 - common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
 - test geometry and bbox variations

@@ -50,6 +50,63 @@ no primitives! all values are constrained in some way
 
 immutable, but not perfect.
 
+## Example
+
+Here's an example of a good one:
+
+```python
+    Item(
+        stac_extensions=[],
+        id="minimal-item",
+        geometry={
+            "type": "Polygon",
+            "coordinates": [[[100.0, 0.0], [101.0, 0.0],
+            [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
+        },
+        properties={"datetime": "2021-01-01T00:00:00Z"},
+        bbox=[100, 0, 101, 1],
+        assets={},
+        links=[],
+    )
+```
+
+In this one, oops, we flipped the order of the coordinates in the bbox. It's so subtle it's hard to even notice:
+
+<!-- markdownlint-disable MD013 -->
+
+```python
+    Item(
+        stac_extensions=[],
+        id="minimal-item",
+        geometry={
+            "type": "Polygon",
+            "coordinates": [[[85.0, 91.0], [86.0, 91.0], [86.0, 92.0], [85.0, 92.0], [85.0, 91.0]]],
+        },
+        properties={"datetime": "2021-01-01T00:00:00Z"},
+        bbox=[85, 91, 86, 92],
+        assets={},
+        links=[],
+    )
+```
+
+<!-- markdownlint-enable MD013 -->
+
+But we get an error when constructing it:
+
+<!-- markdownlint-disable MD013 -->
+
+```text
+E       pydantic_core._pydantic_core.ValidationError: 2 validation errors for Item
+E       bbox.s_lat
+E         Input should be less than or equal to 90 [type=less_than_equal, input_value=91, input_type=int]
+E           For further information visit https://errors.pydantic.dev/2.11/v/less_than_equal
+E       bbox.n_lat
+E         Input should be less than or equal to 90 [type=less_than_equal, input_value=92, input_type=int]
+E           For further information visit https://errors.pydantic.dev/2.11/v/less_than_equal
+```
+
+<!-- markdownlint-enable MD013 -->
+
 ## Possible errors
 
 Sources:
