@@ -12,18 +12,8 @@ Decisions:
 
 Todo:
 
-- developing section
-- test geometry and bbox variations
-- validate geometry or bbox
-- start_datetime and end_datetime -- dt within sdt edt, null rules
-- benchmarking
-- common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
-- best practices https://github.com/radiantearth/stac-spec/blob/master/best-practices.md
-  - searchable identifiers lowercase characters, numbers, _, and -
-  - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands
-  - eo:bands and raster:bands -> bands
-- re-add MultiPolygon
-- re-add all commented code
+- implement basic Link
+- implement basic Assets/Asset
 - review Asset
   - datetime: Provide individual timestamp on an Item, in case the Item has a start_datetime and end_datetime, but an Asset is for one specific time.
   - gsd (Common Metadata): Specify some assets that represent instruments with different spatial resolution than the overall best resolution. Note this should not be used for different spatial resolutions due to specific processing of assets - look into the raster extension for that use case.
@@ -41,18 +31,33 @@ Todo:
   - media types - fail on bad ones, warn on unknown ones
   - deprecated: image/vnd.stac.geotiff and Cloud Optimized GeoTiffs used image/vnd.stac.geotiff; profile=cloud-optimized.
 
-- implement Link
-- implement Asset
+- best practices https://github.com/radiantearth/stac-spec/blob/master/best-practices.md
+  - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands
+  - eo:bands and raster:bands -> bands
+- asset thumbnail png, jpeg, jpg, or webp
+- start_datetime and end_datetime -- dt within sdt edt, null rules
+- developing section
+- test geometry and bbox variations
+- validate geometry or bbox
+- antimeridian checking
+
+- re-add MultiPolygon
+- re-add all commented code
+- add more validation to item model
+
+- benchmarking
+- common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
+
 - allow use of PySTAC Extensions + Augments
 - Extensions https://github.com/radiantearth/stac-spec/blob/master/extensions/README.md
   - EO
   - View
 
-- add more validation to item model
-- antimeridian checking
-- add reference file tests
-- add lots of reference files
+Project:
+
 - pypi
+- rtd
+- codecov
 
 Low priority:
 
@@ -60,27 +65,8 @@ Low priority:
 - replace ItemProperties with flat structure
 - don't `stac_` things
 
-stac-check
+Collection & Catalog
 
-Items
-
-
-            def check_bloated_links(self, max_links: Optional[int] = 20) -> bool:
-thumbnail is
-                        "png" in self.data["assets"]["thumbnail"]["type"]
-                        or "jpeg" in self.data["assets"]["thumbnail"]["type"]
-                        or "jpg" in self.data["assets"]["thumbnail"]["type"]
-                        or "webp" in self.data["assets"]["thumbnail"]["type"]
-
-
-
-
-Collections:
-
-    def check_summaries(self) -> bool:
-        """Check if a Collection asset has a "summaries" property.
-
-C& C
-
+- Check if a Collection asset has a "summaries" property.
 - link title
 - self link? required?

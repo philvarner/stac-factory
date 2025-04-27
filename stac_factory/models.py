@@ -35,6 +35,7 @@ type StacExtensionIdentifier = Annotated[
     str, StringConstraints(pattern=r"^[-_.:/a-zA-Z0-9]+$")  # todo: URI
 ]
 
+# bp - searchable identifiers lowercase characters, numbers, _, and -
 type Identifier = Annotated[str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
 
 type ItemIdentifier = Identifier
