@@ -12,6 +12,12 @@
 
 correct, not just valid wrt schema
 
+Use cases:
+
+1. Creating correct STAC Items from other metadata
+2. Validate existing STAC Item JSON
+3. Tightly-typed to surface as many type errors as possible via mypy before pydantic dynamic validation
+
 ## Installation
 
 STAC Factory is published as `stac-factory` in PyPi.
@@ -48,26 +54,38 @@ no primitives! all values are constrained in some way
 
 "flat" model - properties are not nested in the object model
 
-immutable, but not perfect.
+immutable, but not perfectly
+
+## Acknowledgements
+
+Borrows heavily from:
+
+- pystac (Apache-2.0) Copyright 2019-2024 the authors
+- stac-pydantic (MIT) Copyright (c) 2020 Arturo AI
+- geojson-pydantic (MIT) Copyright (c) 2020 Development Seed
+- [rustac](https://github.com/stac-utils/rustac) (Apache-2.0, MIT) n/a
+- [stac4s](https://github.com/stac-utils/stac4s) (Apache-2.0) n/a
+- [Data.Geospatial](https://hackage.haskell.org/package/geojson-4.1.1/docs/Data-Geospatial.html)
+  (Haskell) (BSD-style)
 
 ## Example
 
 Here's an example of a good one:
 
 ```python
-    Item(
-        stac_extensions=[],
-        id="minimal-item",
-        geometry={
-            "type": "Polygon",
-            "coordinates": [[[100.0, 0.0], [101.0, 0.0],
-            [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
-        },
-        properties={"datetime": "2021-01-01T00:00:00Z"},
-        bbox=[100, 0, 101, 1],
-        assets={},
-        links=[],
-    )
+Item.create(
+    stac_extensions=[],
+    id="minimal-item",
+    geometry={
+        "type": "Polygon",
+        "coordinates": [[[100.0, 0.0], [101.0, 0.0],
+        [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
+    },
+    bbox=[100, 0, 101, 1],
+    assets={},
+    links=[],
+    datetime="2021-01-01T00:00:00Z",
+)
 ```
 
 In this one, oops, we flipped the order of the coordinates in the bbox. It's so subtle it's hard to even notice:
@@ -133,20 +151,37 @@ Issues:
 - Other
   - proj:centroid doesnt' have the lat and lon attributes reversed
 
-## Developing
+## Development
 
-uv
+```shell
+uv venv --python 3.13
+source .venv/bin/activate
+uv sync
+```
 
+Run tests with:
+
+```shell
+pytest
+```
+
+Static analysis is run via [pre-commit](https://pre-commit.com). Install the git
+commit hooks with:
+
+```shell
 pre-commit install
+```
 
-## Acknowledgements
+These can be run manually with:
 
-Borrows heavily from:
+```shell
+pre-commit run --all-files
+```
 
-- pystac  (Apache-2.0) Copyright 2019-2024 the authors
-- stac-pydantic (MIT) Copyright (c) 2020 Arturo AI
-- geojson-pydantic (MIT) Copyright (c) 2020 Development Seed
-- [rustac](https://github.com/stac-utils/rustac) (Apache-2.0, MIT) n/a
-- [stac4s](https://github.com/stac-utils/stac4s) (Apache-2.0) n/a
-- [Data.Geospatial](https://hackage.haskell.org/package/geojson-4.1.1/docs/Data-Geospatial.html)
-  (Haskell) (BSD-style)
+PySTAC Client uses
+
+- [ruff](https://beta.ruff.rs/docs/) for Python formatting and linting
+- [mypy](http://www.mypy-lang.org) for Python type annotation checks
+
+Once installed you can bypass pre-commit by adding the ``--no-verify`` (or ``-n``)
+flag to Git commit commands, as in ``git commit --no-verify``.

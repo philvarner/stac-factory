@@ -123,14 +123,14 @@ def test_inprogress_item() -> None:
     Item.model_validate(item_dict)
 
 
-@pytest.mark.skip(reason="failing because has elements that are not supported")
+# @pytest.mark.xfail(reason="failing because has elements that are not supported")
 def test_typical() -> None:
     fixture_dir = Path(__file__).parent.absolute() / "fixtures"
     item_dict = json.loads(Path(fixture_dir / "typical.json").read_text())
     Item.model_validate(item_dict)
 
 
-@pytest.mark.skip(reason="failing because has elements that are not supported")
+# @pytest.mark.xfail(reason="failing because has elements that are not supported")
 def test_sentinel_2_item() -> None:
     fixture_dir = Path(__file__).parent.absolute() / "fixtures"
     item_dict = json.loads(Path(fixture_dir / "S2B_T38XNF_20250422T091553_L2A.json").read_text())
@@ -138,15 +138,15 @@ def test_sentinel_2_item() -> None:
 
 
 def test_minimal_item_obj() -> None:
-    Item(
+    Item.create(
         stac_extensions=[],
         id="minimal-item",
         geometry={
             "type": "Polygon",
             "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
         },
-        properties={"datetime": "2021-01-01T00:00:00Z"},
         bbox=[100, 0, 101, 1],
         assets={},
         links=[],
+        datetime="2021-01-01T00:00:00Z",
     )

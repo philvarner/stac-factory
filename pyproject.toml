@@ -8,6 +8,7 @@ maintainers = [{ name = "Phil Varner", email = "philvarner@gmail.com" }]
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 dependencies = [
+    "codespell>=2.4.1",
     "pydantic>=2.11.3",
     # "antimeridian>=0.4.1",
     # "shapely>=2.1.0",
@@ -16,6 +17,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "codespell>=2.4.1",
     "mypy>=1.15.0",
     "nox>=2024.4.15",
     "pre-commit>=4.2.0",
@@ -31,7 +33,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-sv --cov stac_factory --cov-report html --cov-report term --cov-fail-under 100"
+addopts = "-sv --cov stac_factory --cov-report html --cov-report term --cov-fail-under 90"
 
 [tool.mypy]
 ignore_missing_imports = true

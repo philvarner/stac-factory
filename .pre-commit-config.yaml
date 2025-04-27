@@ -23,6 +23,12 @@ repos:
       #   language: python
       #   files: \.(md|mdown|markdown)$
       #   exclude: ^.github/pull_request_template.md$
+      - id: codespell
+        name: codespell
+        entry: codespell
+        args: [--ignore-words=.codespellignore]
+        language: system
+        types: [jupyter, markdown, python, shell]
       - id: check-added-large-files
         name: Check for added large files
         entry: check-added-large-files

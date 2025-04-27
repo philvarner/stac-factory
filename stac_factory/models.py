@@ -1,5 +1,5 @@
 from datetime import timezone
-from typing import Annotated, Literal, NamedTuple, TypedDict
+from typing import Annotated, Literal, NamedTuple, TypedDict, Unpack
 
 from annotated_types import Ge, Le
 from pydantic import (
@@ -104,7 +104,7 @@ class Polygon(BaseModel):
     #         ],
     #     )
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class BBox2d(BaseModel):
@@ -126,7 +126,7 @@ class BBox2d(BaseModel):
 
     # todo: loader for array
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class BBox3d(BBox2d):
@@ -184,10 +184,13 @@ type Description = Annotated[str, StringConstraints(min_length=1, max_length=100
 
 
 class StacElement(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class Commons(StacElement): ...
+
+
+type LinkRelation = Annotated[str, StringConstraints(min_length=1, max_length=256), Strict()]
 
 
 class Link(Commons):
@@ -200,30 +203,29 @@ class Link(Commons):
     # REQUIRED. Relationship between the current document and the linked document.
     # See chapter "Relation types" for more information.
     # TODO "Link with relationship `self` must be absolute URI",
-    rel: URI  # or any uri? todo
+    rel: LinkRelation
 
     # todo: these are all optional -- allow or should they be?
 
     # Media type of the referenced entity.
-    type: MediaType
+    type: MediaType | None = None
 
     # A human readable title to be used in rendered displays of the link.
-    title: Title
+    title: Title | None = None
 
     # The HTTP method that shall be used for the request to the target resource, in uppercase. GET by default
-    method: HttpMethod
+    method: HttpMethod | None = None
 
     # The HTTP headers to be sent for the request to the target resource.
-    headers: dict[str, str | list[str]]
+    headers: dict[str, str | list[str]] | None = None
 
     # The HTTP body to be sent to the target resource.
-    body: str | JSONObject
+    body: str | JSONObject | None = None
 
 
 type AssetName = Annotated[str, StringConstraints(min_length=1, max_length=32, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
 
 type Role = Annotated[str, StringConstraints(pattern=r"^[-a-zA-Z0-9]+$"), Strict()]
-type Roles = set[Role]
 
 
 # https://github.com/radiantearth/stac-spec/blob/master/commons/assets.md
@@ -232,17 +234,17 @@ class Asset(BaseModel):
     href: URI
 
     # The displayed title for clients and users.
-    title: Title
+    title: Title | None = None
 
     # A description of the Asset providing additional details, such as how it was processed or created. CommonMark 0.29
     # syntax MAY be used for rich text representation.
-    description: Description
+    description: Description | None = None
 
     # Media type of the asset. See the common media types in the best practice doc for commonly used asset types.
-    type: MediaType
+    type: MediaType | None = None
 
     # The semantic roles of the asset, similar to the use of rel in links.
-    roles: Roles
+    roles: list[Role] | None = None
 
     #  "href": {  "type": "string"
     #             "title": {  "type": "string"
@@ -291,18 +293,51 @@ class Asset(BaseModel):
     #       ]
     #     }
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
+
+
+class NamedAsset(Asset):
+    name: AssetName
 
 
 type CollectionIdentifier = Identifier
 
 
 class Item(BaseModel):  # , Generic[Geom, Props]):
+    @classmethod
+    def create(
+        cls,
+        *,
+        stac_extensions: list[StacExtensionIdentifier],
+        id: ItemIdentifier,
+        geometry: Polygon,  # | MultiPolygon
+        bbox: BBox2d | BBox3d,
+        links: list[Link],
+        assets: list[NamedAsset],
+        collection: CollectionIdentifier | None = None,
+        **properties: Unpack[ItemProperties],
+    ):
+        return cls.model_validate(
+            {
+                "type": "Feature",
+                "stac_version": "1.1.0",
+                "stac_extensions": stac_extensions,
+                "id": id,
+                "geometry": geometry,
+                "bbox": bbox,
+                "properties": properties,
+                "links": links,
+                "assets": assets,
+                "collection": collection,
+            }
+        )
+
     # REQUIRED. Type of the GeoJSON Object. MUST be set to Feature.
-    type: Literal["Feature"] = Field(default="Feature")
+    type: Literal["Feature"]
 
     # REQUIRED. The STAC version the Item implements.
-    stac_version: Literal["1.1.0"] = Field(alias="stac_version", default="1.1.0")
+    # todo: figure out how to support reading and writing differently?
+    stac_version: Literal["1.1.0"]
 
     # A list of extensions the Item implements.
     # -- unique and URI
@@ -375,7 +410,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
 
     # collection/c_link validator
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="ignore", frozen=True)
 
 
 # https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md

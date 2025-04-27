@@ -52,6 +52,8 @@ Todo:
 - Extensions https://github.com/radiantearth/stac-spec/blob/master/extensions/README.md
   - EO
   - View
+- rewrite stactools
+- to_pystac methods
 
 Project:
 
