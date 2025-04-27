@@ -2,8 +2,8 @@
 
 Milestones:
 
-- validate minimal with assets
-- with links
+- validate minimal with links
+- with assets
 - Validate S2 object
 
 Decisions:
@@ -13,13 +13,11 @@ Decisions:
 Todo:
 
 - developing section
-- pystac constants for roles https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#list-of-asset-roles
-- common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
 - test geometry and bbox variations
 - validate geometry or bbox
 - start_datetime and end_datetime -- dt within sdt edt, null rules
 - benchmarking
-- constants for media types https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#common-media-types-in-stac
+- common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
 - best practices https://github.com/radiantearth/stac-spec/blob/master/best-practices.md
   - searchable identifiers lowercase characters, numbers, _, and -
   - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands

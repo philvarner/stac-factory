@@ -29,6 +29,7 @@ from stac_factory.constants import HttpMethod
 type JSONValue = str | int | float | bool | None | dict[str, "JSONValue"] | list["JSONValue"]
 type JSONObject = dict[str, JSONValue]
 
+type ShortStr = Annotated[str, StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
 
 type StacExtensionIdentifier = Annotated[
     str, StringConstraints(pattern=r"^[-_.:/a-zA-Z0-9]+$")  # todo: URI
@@ -160,7 +161,7 @@ class ItemProperties(TypedDict):
     # REQUIRED. The searchable date and time of the assets, which must be in UTC.
     # It is formatted according to RFC 3339, section 5.6. null is allowed, but
     # requires start_datetime and end_datetime from common metadata to be set.
-    datetime: UtcDatetime  # todo: validate
+    datetime: UtcDatetime  # todo: validate -- but can be null
 
     # datetime is not null or all three defined and s & e not null
     #                         "datetime",
@@ -374,3 +375,53 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     # collection/c_link validator
 
     model_config = ConfigDict(extra="forbid", frozen=True)
+
+
+# https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
+class Common(BaseModel): ...
+
+
+class Basics(Common):
+    # A human readable title describing the STAC entity.
+    title: Title
+
+    # Detailed multi-line description to fully explain the STAC entity. CommonMark 0.29 syntax MAY be used for rich
+    # text representation.
+    description: Description
+
+    # List of keywords describing the STAC entity.
+    keywords: list[ShortStr]
+
+    # The semantic roles of the entity, e.g. for assets, links, providers, bands, etc.
+    roles: list[ShortStr]
+
+
+class DateAndTime(Common):
+    # See the Item Specification Fields for more information.
+    datetime: UtcDatetime | None
+
+    # Creation date and time of the corresponding STAC entity or Asset (see below), in UTC.
+    created: UtcDatetime
+
+    # Date and time the corresponding STAC entity or Asset (see below) was updated last, in UTC.
+    updated: UtcDatetime
+
+    # created and updated have different meaning depending on where they are used. If those fields are available in
+    # a Collection, in a Catalog (both top-level), or in a Item (in the properties), the fields refer the metadata
+    # (e.g., when the STAC metadata was created). Having those fields in the Assets or Links, they refer to the actual
+    # data linked to (e.g., when the asset was created).
+
+    # The first or start date and time for the resource, in UTC. It is formatted as date-time according to RFC 3339,
+    # section 5.6.
+    start_datetime: UtcDatetime
+
+    # The last or end date and time for the resource, in UTC. It is formatted as date-time according to RFC 3339,
+    # section 5.6.
+    end_datetime: UtcDatetime
+
+
+class SomethingElse(Common):
+    # License(s) of the data as SPDX License identifier, SPDX License expression, or other (see below).
+    license: str
+
+    # to be continued...

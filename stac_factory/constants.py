@@ -13,7 +13,7 @@ class HttpMethod(StrEnum):
     CONNECT = auto()
 
 
-class AssetRoles(StrEnum):
+class AssetRole(StrEnum):
     data = auto()
     metadata = auto()
     thumbnail = auto()
@@ -35,7 +35,6 @@ class AssetRoles(StrEnum):
     cloud_shadow = auto()
 
     # from View
-
     incidence_angle = auto()
     azimuth = auto()
     sun_azimuth = auto()
@@ -56,3 +55,45 @@ class AssetRoles(StrEnum):
     date_offset = auto()
     covmat = auto()
     prd = auto()
+
+
+class LinkRelation(StrEnum):
+    self = auto()
+    derived_from = auto()
+    root = auto()
+    parent = auto()
+    child = auto()
+    item = auto()
+    alternate = auto()
+    canonical = auto()
+    via = auto()
+    prev = auto()
+    next = auto()
+    preview = auto()
+    collection = auto()
+
+
+# derived from pystac.MediaType
+class MediaType(StrEnum):
+    COG = "image/tiff; application=geotiff; profile=cloud-optimized"
+    GEOTIFF = "image/tiff; application=geotiff"
+    FLATGEOBUF = "application/vnd.flatgeobuf"
+    GEOJSON = "application/geo+json"
+    GEOPACKAGE = "application/geopackage+sqlite3"
+    HDF = "application/x-hdf"  # <= HDF4
+    HDF5 = "application/x-hdf5"
+    HTML = "text/html"
+    JPEG = "image/jpeg"
+    JPEG2000 = "image/jp2"
+    JSON = "application/json"
+    PNG = "image/png"
+    TEXT = "text/plain"
+    TIFF = "image/tiff"
+    KML = "application/vnd.google-earth.kml+xml"
+    XML = "application/xml"
+    PDF = "application/pdf"
+    NETCDF = "application/netcdf"
+    COPC = "application/vnd.laszip+copc"
+    VND_PMTILES = "application/vnd.pmtiles"
+    VND_APACHE_PARQUET = "application/vnd.apache.parquet"
+    VND_ZARR = "application/vnd.zarr"
