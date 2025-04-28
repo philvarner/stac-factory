@@ -12,6 +12,8 @@
 
 correct, not just valid wrt schema
 
+Handle the 80% of cases correctly, rather than 100% loosely.
+
 Use cases:
 
 1. Creating correct STAC Items from other metadata
@@ -24,37 +26,19 @@ STAC Factory is published as `stac-factory` in PyPi.
 
 ## Why another Python STAC data model library?
 
-Other libraries, such as pystac and stac-pydantic, are built for general-purpose use
-and have relatively lax typing and validation. This aligns with the robustness principle (Postel's law)
+Other libraries, such as pystac and stac-pydantic, are built for general-purpose use,
+and intentional have relaxed typing and validation. This aligns with the robustness principle (Postel's law)
 of "be conservative in what you do, be liberal in what you accept from others". Since most consumers of
 STAC objects have no control over the contents of the JSON-serialized objects, the libraries are liberal
-in what they accept, and will try to read anything.  However, they leave the "conservative in what you do"
-part up to the user -- they will also serialize any in-memory object to JSON, and leave it up to the rest
-of the application to validate it is correct.
+in what they accept, and will try to read anything into an object.  However, they leave the "conservative in what you do"
+part up to the user -- they will also serialize most any object to JSON, even if it's invalid with respect to the
+spec, and leave it up to the rest of the application to validate it is correct.
 
-By comparison, STAC Factory is intended only for creating STAC entities and strongly validating correctness.
-
-Refined types "refining types with type-level predicates which constrain
-the set of values described by the refined type"
-
-types are refined, and then can be constructed into a high-quality finished
-product
-
-<https://nikita-volkov.github.io/refined/>
-<https://github.com/nikita-volkov/refined>
-<https://github.com/fthomas/refined>
-
-Opinionated.
-
-A tightly-typed model for creating STAC Items.
-
-Performance is not a driving concern, correctness is.
-
-no primitives! all values are constrained in some way
-
-"flat" model - properties are not nested in the object model
-
-immutable, but not perfectly
+The STAC specs have a JSON Schema, text description, official best practices, informal best practices, and practical
+constraints not stated anywhere.  By comparison, STAC Factory is intended only for creating STAC entities and strongly
+validating correctness.
+This attempts to combine them into one package that gives you a high likelyhood of
+creating a STAC Item that is _correct_, not just _valid_.
 
 ## Acknowledgements
 
@@ -124,6 +108,32 @@ E           For further information visit https://errors.pydantic.dev/2.11/v/les
 ```
 
 <!-- markdownlint-enable MD013 -->
+
+## Design Principles
+
+Opinionated.
+
+immutable, but not perfectly
+
+Implements a lot of techniques from functional programming that facilitate correctness.
+
+Refined types "refining types with type-level predicates which constrain
+the set of values described by the refined type"
+
+types are refined, and then can be constructed into a high-quality finished
+product
+
+<https://nikita-volkov.github.io/refined/>
+<https://github.com/nikita-volkov/refined>
+<https://github.com/fthomas/refined>
+no primitives! all values are constrained in some way
+
+A tightly-typed model for creating STAC Items.
+
+Performance is not a driving concern, correctness is.
+
+"flat" model - properties are not nested in the object model
+
 
 ## Possible errors
 

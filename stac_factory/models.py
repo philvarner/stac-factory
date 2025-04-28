@@ -196,6 +196,30 @@ type LinkRelation = Annotated[str, StringConstraints(min_length=1, max_length=25
 class Link(Commons):
     # https://github.com/radiantearth/stac-spec/blob/master/commons/links.md#link-object
 
+    @classmethod
+    def create(
+        cls,
+        *,
+        href: URI,
+        rel: LinkRelation,
+        type: MediaType | None = None,
+        title: Title | None = None,
+        method: HttpMethod | None = None,
+        headers: dict[str, str | list[str]] | None = None,
+        body: str | JSONObject | None = None,
+    ):
+        return cls.model_validate(
+            {
+                "href": href,
+                "rel": rel,
+                "type": type,
+                "title": title,
+                "method": method,
+                "headers": headers,
+                "body": body,
+            }
+        )
+
     # REQUIRED. The actual link in the format of an URL. Relative and absolute links are both allowed.
     # Trailing slashes are significant.
     href: URI
@@ -221,6 +245,10 @@ class Link(Commons):
 
     # The HTTP body to be sent to the target resource.
     body: str | JSONObject | None = None
+
+    # todo:
+    # validate   - deprecated: image/vnd.stac.geotiff and Cloud Optimized GeoTiffs used
+    # image/vnd.stac.geotiff; profile=cloud-optimized.
 
 
 type AssetName = Annotated[str, StringConstraints(min_length=1, max_length=32, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
@@ -293,6 +321,9 @@ class Asset(BaseModel):
     #       ]
     #     }
 
+    # todo : validate
+    #   - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands
+    #   - eo:bands and raster:bands -> bands
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
@@ -392,6 +423,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     links: list[Link]
 
     # REQUIRED. Dictionary of asset objects that can be downloaded, each with a unique key.
+    # todo: has an asset with `data`
     assets: dict[AssetName, Asset]
 
     # The id of the STAC Collection this Item references to. This field is required if a
