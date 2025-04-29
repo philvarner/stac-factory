@@ -1,10 +1,10 @@
 # STAC Factory
 
-[![CI](https://github.com/philvarner/stac-factory/actions/workflows/ci.yml/badge.svg)](https://github.com/philvarner/stac-factory/actions/workflows/continuous-integration.yml)
-[![Release](https://github.com/philvarner/stac-factory/actions/workflows/release.yml/badge.svg)](https://github.com/philvarner/stac-factory/actions/workflows/release.yml)
-[![PyPI version](https://badge.fury.io/py/stac-factory.svg)](https://badge.fury.io/py/stac-factory)
-[![Documentation](https://readthedocs.org/projects/stac-factory/badge/?version=stable)](https://stac-factory.readthedocs.io)
-[![codecov](https://codecov.io/gh/philvarner/stac-factory/branch/main/graph/badge.svg)](https://codecov.io/gh/philvarner/stac-factory)
+[![CI](https://img.shields.io/github/actions/workflow/status/philvarner/stac-factory/ci.yaml?style=for-the-badge)](https://github.com/philvarner/stac-factory/actions/workflows/ci.yaml)
+[![Release](https://github.com/philvarner/stac-factory/actions/workflows/release.yml?style=for-the-badge)](https://github.com/philvarner/stac-factory/actions/workflows/release.yml)
+[![stac-factory PyPI](https://img.shields.io/pypi/v/stac-factory?style=for-the-badge&label=stac-factory)](https://pypi.org/project/stac-factory/)
+[![Documentation](https://readthedocs.org/projects/stac-factory/badge/?version=stable&style=for-the-badge)](https://stac-factory.readthedocs.io)
+[![codecov](https://codecov.io/gh/philvarner/stac-factory/branch/main/graph/badge.svg?style=for-the-badge)](https://codecov.io/gh/philvarner/stac-factory)
 
 ![STAC Factory Logo](./stac-factory-logo.jpg)
 
