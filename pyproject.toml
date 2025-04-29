@@ -46,32 +46,18 @@ line-length = 120
 quote-style = 'double'
 
 [tool.ruff.lint]
-select = [
-    'ARG',
-    'B',
-    'C4',
-    'C90',
-    'DTZ',
-    'E',
-    'F',
-    'FA',
-    'G',
-    'I',
-    'INP',
-    'N',
-    'NPY',
-    'PT',
-    'PTH',
-    'RET',
-    'RUF',
-    'S',
-    'SIM',
-    'T20',
-    'UP',
-    'W',
-]
+select = ['ALL']
 ignore = [
-    "RET505"
+    "D",       #  doc
+    "PLR2004", # magic values, exclude for tests
+    "ERA001",  # commented code
+    "FIX",     # todo
+    "TD",      # todo
+    "EM",
+    "TRY",
+    "PLR0913",
+    "A002",    # fix builtin shadowing
+    "COM812",
 ]
 
 exclude = []

@@ -1,5 +1,5 @@
 from datetime import timezone
-from typing import Annotated, Literal, NamedTuple, Protocol, TypedDict, Unpack
+from typing import Annotated, Literal, NamedTuple, Protocol, Self, TypedDict, Unpack
 
 from annotated_types import Ge, Le
 from pydantic import (
@@ -34,7 +34,8 @@ type Identifier = ShortStr
 type ItemIdentifier = Identifier
 type CollectionIdentifier = Identifier
 type StacExtensionIdentifier = Annotated[
-    str, StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.:/a-zA-Z0-9]+$")  # todo: URI?
+    str,
+    StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.:/a-zA-Z0-9]+$"),  # TODO: URI?
 ]
 
 type Lat = Annotated[float, Ge(-90.0), Le(90)]
@@ -106,7 +107,7 @@ class BBox2d(BaseModel):
     n_lat: Lat
 
     @model_validator(mode="after")
-    def validate_relative_latitudes(self):
+    def validate_relative_latitudes(self) -> Self:
         if self.s_lat > self.n_lat:
             raise ValueError("South latitude must be less than or equal to north latitude")
         return self
@@ -115,7 +116,7 @@ class BBox2d(BaseModel):
     def ser_model(self) -> list[float]:
         return [self.w_lon, self.s_lat, self.e_lon, self.n_lat]
 
-    # todo: loader for array
+    # TODO: loader for array
 
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
@@ -126,7 +127,7 @@ class BBox3d(BBox2d):
     top_elevation: Elevation
 
     @model_validator(mode="after")
-    def validate_relative_elevations(self):
+    def validate_relative_elevations(self) -> Self:
         if self.top_elevation <= self.bottom_elevation:
             raise ValueError("Bottom elevation is above top elevation")
         return self
@@ -153,7 +154,7 @@ class ItemProperties(TypedDict):
     # REQUIRED. The searchable date and time of the assets, which must be in UTC.
     # It is formatted according to RFC 3339, section 5.6. null is allowed, but
     # requires start_datetime and end_datetime from common metadata to be set.
-    datetime: UtcDatetime  # todo: validate -- but can be null
+    datetime: UtcDatetime  # TODO: validate -- but can be null
 
     # datetime is not null or all three defined and s & e not null
     #                         "datetime",
@@ -167,7 +168,9 @@ type URI = AnyUrl
 
 # Media type regex based on RFC 6838 syntax
 type MediaType = Annotated[
-    str, StringConstraints(pattern=r"^[a-zA-Z0-9][-a-zA-Z0-9.+]*/[a-zA-Z0-9][-a-zA-Z0-9.+]*(?:;.*)?$"), Strict()
+    str,
+    StringConstraints(pattern=r"^[a-zA-Z0-9][-a-zA-Z0-9.+]*/[a-zA-Z0-9][-a-zA-Z0-9.+]*(?:;.*)?$"),
+    Strict(),
 ]
 
 type Title = Annotated[str, StringConstraints(min_length=1, max_length=100), Strict()]
@@ -195,11 +198,11 @@ class Link(Commons):
         rel: Rel,
         type: MediaType | None = None,
         title: Title | None = None,
-        # todo: description?
+        # TODO: description?
         method: HttpMethod | None = None,
         headers: dict[str, str | list[str]] | None = None,
         body: str | JSONObject | None = None,
-    ):
+    ) -> Self:
         return cls.model_validate(
             {
                 "href": href,
@@ -209,7 +212,7 @@ class Link(Commons):
                 "method": method,
                 "headers": headers,
                 "body": body,
-            }
+            },
         )
 
     # REQUIRED. The actual link in the format of an URL. Relative and absolute links are both allowed.
@@ -221,7 +224,7 @@ class Link(Commons):
     # TODO "Link with relationship `self` must be absolute URI",
     rel: Rel
 
-    # todo: these are all optional -- allow or should they be?
+    # TODO: these are all optional -- allow or should they be?
 
     # Media type of the referenced entity.
     type: MediaType | None = None
@@ -238,7 +241,7 @@ class Link(Commons):
     # The HTTP body to be sent to the target resource.
     body: str | JSONObject | None = None
 
-    # todo:
+    # TODO:
     # validate   - deprecated: image/vnd.stac.geotiff and Cloud Optimized GeoTiffs used
     # image/vnd.stac.geotiff; profile=cloud-optimized.
 
@@ -260,7 +263,7 @@ class Asset(BaseModel):
         description: Description | None = None,
         type: MediaType | None = None,
         roles: list[Role] | None = None,  # ?
-    ):
+    ) -> Self:
         return cls.model_validate(
             {
                 "href": href,
@@ -268,7 +271,7 @@ class Asset(BaseModel):
                 "description": description,
                 "type": type,
                 "roles": roles,
-            }
+            },
         )
 
     # REQUIRED. URI to the asset object. Relative and absolute URI are both allowed. Trailing slashes are significant.
@@ -289,7 +292,7 @@ class Asset(BaseModel):
 
     # "$ref": "common.json"
 
-    # todo : validate
+    # TODO : validate
     #   - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands
     #   - eo:bands and raster:bands -> bands
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
@@ -317,7 +320,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
         assets: list[NamedAsset],
         collection: CollectionIdentifier | None = None,
         **properties: Unpack[ItemProperties],
-    ):
+    ) -> "Item":
         x = cls.model_validate(
             {
                 "type": "Feature",
@@ -330,7 +333,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                 "links": links,
                 "assets": assets,
                 "collection": collection,
-            }
+            },
         )
 
         for extension in extensions:
@@ -342,7 +345,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     type: Literal["Feature"]
 
     # REQUIRED. The STAC version the Item implements.
-    # todo: figure out how to support reading and writing differently?
+    # TODO: figure out how to support reading and writing differently?
     stac_version: Literal["1.1.0"]
 
     # A list of extensions the Item implements.
@@ -398,7 +401,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     links: list[Link]
 
     # REQUIRED. Dictionary of asset objects that can be downloaded, each with a unique key.
-    # todo: has an asset with `data`
+    # TODO: has an asset with `data`
     assets: dict[AssetName, Asset]
 
     # The id of the STAC Collection this Item references to. This field is required if a

@@ -51,7 +51,7 @@ def test_polygon() -> None:
         {
             "type": "Polygon",
             "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
-        }
+        },
     )
 
 
@@ -76,7 +76,7 @@ def test_polygon_with_holes_raises() -> None:
                         [100.8, 0.8],
                     ],
                 ],
-            }
+            },
         )
 
 

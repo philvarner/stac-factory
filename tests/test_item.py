@@ -92,7 +92,7 @@ def test_item_create_typical() -> None:
                 description="an item description",
                 type=MediaType.JSON,
                 roles=[AssetRole.data],
-            )
+            ),
         },
         links=[
             Link.create(
@@ -103,7 +103,7 @@ def test_item_create_typical() -> None:
                 method=HttpMethod.GET,
                 headers=None,
                 body=None,
-            )
+            ),
         ],
         datetime="2021-01-01T00:00:00Z",
     )
