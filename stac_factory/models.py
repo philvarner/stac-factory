@@ -190,7 +190,7 @@ class StacElement(BaseModel):
 class Commons(StacElement): ...
 
 
-type LinkRelation = Annotated[str, StringConstraints(min_length=1, max_length=256), Strict()]
+type Rel = Annotated[str, StringConstraints(min_length=1, max_length=256), Strict()]
 
 
 class Link(Commons):
@@ -201,9 +201,10 @@ class Link(Commons):
         cls,
         *,
         href: URI,
-        rel: LinkRelation,
+        rel: Rel,
         type: MediaType | None = None,
         title: Title | None = None,
+        # todo: description?
         method: HttpMethod | None = None,
         headers: dict[str, str | list[str]] | None = None,
         body: str | JSONObject | None = None,
@@ -227,7 +228,7 @@ class Link(Commons):
     # REQUIRED. Relationship between the current document and the linked document.
     # See chapter "Relation types" for more information.
     # TODO "Link with relationship `self` must be absolute URI",
-    rel: LinkRelation
+    rel: Rel
 
     # todo: these are all optional -- allow or should they be?
 
@@ -256,8 +257,29 @@ type AssetName = Annotated[str, StringConstraints(min_length=1, max_length=32, p
 type Role = Annotated[str, StringConstraints(pattern=r"^[-a-zA-Z0-9]+$"), Strict()]
 
 
-# https://github.com/radiantearth/stac-spec/blob/master/commons/assets.md
 class Asset(BaseModel):
+    # https://github.com/radiantearth/stac-spec/blob/master/commons/assets.md
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        href: URI,
+        title: Title | None = None,
+        description: Description | None = None,
+        type: MediaType | None = None,
+        roles: list[Role] | None = None,  # ?
+    ):
+        return cls.model_validate(
+            {
+                "href": href,
+                "title": title,
+                "description": description,
+                "type": type,
+                "roles": roles,
+            }
+        )
+
     # REQUIRED. URI to the asset object. Relative and absolute URI are both allowed. Trailing slashes are significant.
     href: URI
 
@@ -274,52 +296,7 @@ class Asset(BaseModel):
     # The semantic roles of the asset, similar to the use of rel in links.
     roles: list[Role] | None = None
 
-    #  "href": {  "type": "string"
-    #             "title": {  "type": "string"
-    #             "description": {  "type": "string"
-    #             "type": {  "type": "string"
-    #             "roles": { #               "type": "array", #                 "type": "string"
-
-    # "asset": {
-    #       "allOf": [
-    #         {
-    #           "type": "object",
-    #           "required": [
-    #             "href"
-    #           ],
-    #           "properties": {
-    #             "href": {
-    #               "title": "Asset reference",
-    #               "type": "string",
-    #               "format": "iri-reference",
-    #               "minLength": 1
-    #             },
-    #             "title": {
-    #               "title": "Asset title",
-    #               "type": "string"
-    #             },
-    #             "description": {
-    #               "title": "Asset description",
-    #               "type": "string"
-    #             },
-    #             "type": {
-    #               "title": "Asset type",
-    #               "type": "string"
-    #             },
-    #             "roles": {
-    #               "title": "Asset roles",
-    #               "type": "array",
-    #               "items": {
-    #                 "type": "string"
-    #               }
-    #             }
-    #           }
-    #         },
-    #         {
-    #           "$ref": "common.json"
-    #         }
-    #       ]
-    #     }
+    # "$ref": "common.json"
 
     # todo : validate
     #   - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands

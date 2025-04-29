@@ -1,11 +1,9 @@
 # Todo
 
-- implement Link constructor - test
-- back to 100% coverage
-- implement Asset constructor
+- generate JSON schema from it and compare with actual
+- better create
 - re-add MultiPolygon
 - re-add all commented code
-- generate JSON schema from it and compare with actual
 - developing section
 - test geometry and bbox variations
 - validate geometry or bbox

@@ -6,7 +6,8 @@ import pytest
 
 from pydantic import ValidationError
 
-from stac_factory.models import BBox2d, BBox3d, Item, Polygon
+from stac_factory.constants import AssetRole, HttpMethod, LinkRelation, MediaType
+from stac_factory.models import Asset, BBox2d, BBox3d, Item, Link, Polygon
 
 
 def test_bbox2d() -> None:
@@ -21,9 +22,8 @@ def test_bbox2d() -> None:
 
 
 def test_bbox2d_with_inverted_latitude() -> None:
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(ValidationError, match="South latitude must be less than or equal to north latitude"):
         BBox2d(w_lon=0, e_lon=1, s_lat=1, n_lat=0)
-    assert "South latitude must be less than or equal to north latitude" in str(e.value)
 
 
 def test_bbox3d() -> None:
@@ -46,9 +46,8 @@ def test_bbox3d() -> None:
 
 
 def test_bbox3d_with_inverted_elevation() -> None:
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(ValidationError, match="Bottom elevation is above top elevation"):
         BBox3d(w_lon=0, e_lon=1, s_lat=0, n_lat=1, bottom_elevation=1, top_elevation=0)
-    assert "Bottom elevation is above top elevation" in str(e.value)
 
 
 def test_polygon() -> None:
@@ -96,9 +95,8 @@ def test_item_with_invalid_bbox() -> None:
     fixture_dir = Path(__file__).parent.absolute() / "fixtures"
     item_dict = json.loads(Path(fixture_dir / "minimal.json").read_text())
     item_dict["bbox"].append("0")
-    with pytest.raises(ValidationError) as e:
+    with pytest.raises(ValidationError, match="BBox requires exactly 4 or 6 coordinates"):
         Item.model_validate(item_dict)
-    assert "BBox requires exactly 4 or 6 coordinates" in str(e.value)
 
 
 def test_minimal_item() -> None:
@@ -149,4 +147,34 @@ def test_minimal_item_obj() -> None:
         assets={},
         links=[],
         datetime="2021-01-01T00:00:00Z",
+    )
+
+
+def test_link_create() -> None:
+    Link.create(
+        href="https://api.example.com/x.json",
+        rel=LinkRelation.canonical,
+        type=MediaType.JSON,
+        title="an item",
+        method=HttpMethod.GET,
+        headers=None,
+        body=None,
+    )
+
+
+def test_duplicate_stac_extensions() -> None:
+    fixture_dir = Path(__file__).parent.absolute() / "fixtures"
+    item_dict = json.loads(Path(fixture_dir / "minimal.json").read_text())
+    item_dict["stac_extensions"] = ["same", "same"]
+    with pytest.raises(ValidationError, match="stac_extensions must contain unique items"):
+        Item.model_validate(item_dict)
+
+
+def test_asset_create() -> None:
+    Asset.create(
+        href="https://api.example.com/x.json",
+        title="an item",
+        description="an item description",
+        type=MediaType.JSON,
+        roles=[AssetRole.data],
     )
