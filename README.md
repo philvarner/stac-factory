@@ -19,6 +19,15 @@ Use cases:
 2. Validate existing STAC Item JSON
 3. Tightly-typed to surface as many type errors as possible via mypy before pydantic dynamic validation
 
+To quote Mike Admunsen, "your data model is not your object model is not your resource model is not your message model".
+STAC is defined as an ontology (the names of things and how they relate) coupled to a representation format (JSON).
+Our object model (how we construct and use Python objects in memory) doesn't have to have the same structure as our
+message model (JSON) that we use to serialize the data.  Some of the structure of STAC JSON was inherited from GeoJSON,
+some of it was arbitrary decisions made years ago that couldn't be changed without significant disruption to a nacent
+project. So, here we present a clearer object model, but are aware that our representation model (JSON) is different.
+The differences should be apparent to someone familiar with STAC by looking at the class definitions, but if you're new,
+just be aware of these differences. (todo: enumerate the differences)
+
 ## Installation
 
 STAC Factory is published as `stac-factory` in PyPi.
@@ -57,17 +66,37 @@ Here's an example of a good one:
 
 ```python
 Item.create(
-    stac_extensions=[],
+    stac_extensions=["https://stac-extensions.github.io/eo/v2.0.0/schema.json],
     id="minimal-item",
     geometry={
-        "type": "Polygon",
-        "coordinates": [[[100.0, 0.0], [101.0, 0.0],
-        [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
+      "type": "Polygon",
+      "coordinates": [[[100.0, 0.0], [101.0, 0.0],
+      [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
     },
     bbox=[100, 0, 101, 1],
-    assets={},
-    links=[],
-    datetime="2021-01-01T00:00:00Z",
+    assets=[
+      Asset.create(
+        name="asset1",
+        href="https://api.example.com/x.json",
+        title="an item",
+        description="an item description",
+        type=MediaType.JSON,
+        roles=[AssetRole.data],
+      )
+    ],
+    links=[
+        Link.create(
+            href="https://api.example.com/x.json",
+            rel=LinkRelation.canonical,
+            type=MediaType.JSON,
+            title="an item",
+            method=HttpMethod.GET,
+            headers=None,
+            body=None,
+        )
+    ],
+    datetime="2021-01-01T00:00:00,
+    eo_cloud_cover="3.14",
 )
 ```
 
@@ -85,7 +114,7 @@ In this one, oops, we flipped the order of the coordinates in the bbox. It's so 
         },
         properties={"datetime": "2021-01-01T00:00:00Z"},
         bbox=[85, 91, 86, 92],
-        assets={},
+        assets=[],
         links=[],
     )
 ```

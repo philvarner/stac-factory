@@ -1,15 +1,20 @@
 # Todo
 
-- generate JSON schema from it and compare with actual
-- better create
+- fix assets
+- test validate populated Item - assets is wrong
+- move datetime to top-level
 - re-add MultiPolygon
 - re-add all commented code
-- developing section
+- rework properties
 - test geometry and bbox variations
 - validate geometry or bbox
 - antimeridian checking
+- Extensions - EO, View
 - benchmarking
 - hypothesis
+- cli
+  - write schema
+- robust developing section
 
 -------------------------------------------------------
 

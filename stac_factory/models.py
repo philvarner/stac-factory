@@ -1,5 +1,5 @@
 from datetime import timezone
-from typing import Annotated, Literal, NamedTuple, TypedDict, Unpack
+from typing import Annotated, Literal, NamedTuple, Protocol, TypedDict, Unpack
 
 from annotated_types import Ge, Le
 from pydantic import (
@@ -18,12 +18,10 @@ from pydantic import (
 
 from stac_factory.constants import HttpMethod
 
-# STAC Item spec: https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
-# schemas: https://github.com/radiantearth/stac-spec/tree/master/item-spec/json-schema
-# GeoJSON spec: https://datatracker.ietf.org/doc/html/rfc7946
-
-# todo work on this
-
+# MD - STAC Item spec: https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
+# JS - JSON schema: https://github.com/radiantearth/stac-spec/tree/master/item-spec/json-schema
+# BP - Best Practices https://github.com/radiantearth/stac-spec/blob/master/best-practices.md
+# GJ - GeoJSON spec: https://datatracker.ietf.org/doc/html/rfc7946
 
 # Basic JSON object type annotation
 type JSONValue = str | int | float | bool | None | dict[str, "JSONValue"] | list["JSONValue"]
@@ -31,20 +29,13 @@ type JSONObject = dict[str, JSONValue]
 
 type ShortStr = Annotated[str, StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
 
-type StacExtensionIdentifier = Annotated[
-    str, StringConstraints(pattern=r"^[-_.:/a-zA-Z0-9]+$")  # todo: URI
-]
-
-# bp - searchable identifiers lowercase characters, numbers, _, and -
-type Identifier = Annotated[str, StringConstraints(pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
-
+# BP - searchable identifiers lowercase characters, numbers, _, and -
+type Identifier = ShortStr
 type ItemIdentifier = Identifier
-
-# URI regex pattern per RFC 3986
-# type Uri = Annotated[
-#     str, StringConstraints(pattern=r"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$"), Strict()
-# ]
-
+type CollectionIdentifier = Identifier
+type StacExtensionIdentifier = Annotated[
+    str, StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.:/a-zA-Z0-9]+$")  # todo: URI?
+]
 
 type Lat = Annotated[float, Ge(-90.0), Le(90)]
 type Lon = Annotated[float, Ge(-180.0), Le(180)]
@@ -308,14 +299,16 @@ class NamedAsset(Asset):
     name: AssetName
 
 
-type CollectionIdentifier = Identifier
+class ItemExtension(Protocol):
+    def apply(self, item: "Item") -> "Item":
+        return item
 
 
 class Item(BaseModel):  # , Generic[Geom, Props]):
     @classmethod
     def create(
         cls,
-        *,
+        *extensions: ItemExtension,
         stac_extensions: list[StacExtensionIdentifier],
         id: ItemIdentifier,
         geometry: Polygon,  # | MultiPolygon
@@ -325,7 +318,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
         collection: CollectionIdentifier | None = None,
         **properties: Unpack[ItemProperties],
     ):
-        return cls.model_validate(
+        x = cls.model_validate(
             {
                 "type": "Feature",
                 "stac_version": "1.1.0",
@@ -339,6 +332,11 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                 "collection": collection,
             }
         )
+
+        for extension in extensions:
+            x = extension.apply(x)
+
+        return x
 
     # REQUIRED. Type of the GeoJSON Object. MUST be set to Feature.
     type: Literal["Feature"]
