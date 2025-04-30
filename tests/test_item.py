@@ -61,6 +61,12 @@ def test_item_sentinel_2() -> None:
     Item.model_validate(item_dict)
 
 
+def test_item_sentinel_2_multipolygon() -> None:
+    fixture_dir = Path(__file__).parent.absolute() / "fixtures"
+    item_dict = json.loads(Path(fixture_dir / "S2B_T01WCR_20250427T000611_L2A.json").read_text())
+    Item.model_validate(item_dict)
+
+
 def test_item_create_minimal() -> None:
     Item.create(
         stac_extensions=[],
@@ -68,6 +74,41 @@ def test_item_create_minimal() -> None:
         geometry={
             "type": "Polygon",
             "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
+        },
+        bbox=[100, 0, 101, 1],
+        assets={},
+        links=[],
+        datetime="2021-01-01T00:00:00Z",
+    )
+
+
+def test_item_create_minimal_mp() -> None:
+    Item.create(
+        stac_extensions=[],
+        id="minimal-item",
+        geometry={
+            "type": "MultiPolygon",
+            "coordinates": [
+                [
+                    [
+                        [180, 68.4858038539966],
+                        [178.11849452315352, 68.44150171742469],
+                        [178.32076050993456, 67.46099994484686],
+                        [180, 67.50167854411256],
+                        [180, 68.4858038539966],
+                    ]
+                ],
+                [
+                    [
+                        [-179.20556042231803, 68.49813373282021],
+                        [-180, 68.4858038540324],
+                        [-180, 67.50167854415058],
+                        [-179.31735654435366, 67.51320396474968],
+                        [-179.12603876314654, 67.65097850440162],
+                        [-179.20556042231803, 68.49813373282021],
+                    ]
+                ],
+            ],
         },
         bbox=[100, 0, 101, 1],
         assets={},

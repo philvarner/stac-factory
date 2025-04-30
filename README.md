@@ -32,14 +32,15 @@ just be aware of these differences. (todo: enumerate the differences)
 
 STAC Factory is published as `stac-factory` in PyPi.
 
-## Why another Python STAC data model library?
+## Why another Python STAC object model library?
 
 Other libraries, such as pystac and stac-pydantic, are built for general-purpose use,
 and intentional have relaxed typing and validation. This aligns with the robustness principle (Postel's law)
 of "be conservative in what you do, be liberal in what you accept from others". Since most consumers of
-STAC objects have no control over the contents of the JSON-serialized objects, the libraries are liberal
-in what they accept, and will try to read anything into an object.  However, they leave the "conservative in what you do"
-part up to the user -- they will also serialize most any object to JSON, even if it's invalid with respect to the
+STAC objects have no control over the contents of the JSON-serialized objects they're reading, the libraries are liberal
+in what they accept, and are able to read most any JSON into an STAC object.  However, they leave the "conservative
+in what you do" part up to the user (rephrase) -- they will also serialize most any object to JSON, even if it's invalid with
+respect to the
 spec, and leave it up to the rest of the application to validate it is correct.
 
 The STAC specs have a JSON Schema, text description, official best practices, informal best practices, and practical
@@ -96,7 +97,7 @@ Item.create(
         )
     ],
     datetime="2021-01-01T00:00:00,
-    eo_cloud_cover="3.14",
+    eo__cloud_cover="3.14",
 )
 ```
 

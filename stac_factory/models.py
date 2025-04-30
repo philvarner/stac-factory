@@ -58,9 +58,7 @@ type Position = Position2D | Position3D
 
 type LinearRingCoordinates = Annotated[list[Position], Field(min_length=4, max_length=512)]
 type PolygonCoordinates = Annotated[list[LinearRingCoordinates], Field(min_length=1, max_length=1)]
-# type MultiPolygonCoordinates = Annotated[
-#     list[PolygonCoordinates], Field(min_length=1, max_length=2)
-# ]
+type MultiPolygonCoordinates = Annotated[list[PolygonCoordinates], Field(min_length=1, max_length=2)]
 
 
 class Polygon(BaseModel):
@@ -95,6 +93,13 @@ class Polygon(BaseModel):
     #             ]
     #         ],
     #     )
+
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
+
+
+class MultiPolygon(BaseModel):
+    type: Literal["MultiPolygon"]
+    coordinates: MultiPolygonCoordinates
 
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
@@ -314,7 +319,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
         *extensions: ItemExtension,
         stac_extensions: list[StacExtensionIdentifier],
         id: ItemIdentifier,
-        geometry: Polygon,  # | MultiPolygon
+        geometry: Polygon | MultiPolygon,
         bbox: BBox2d | BBox3d,
         links: list[Link],
         assets: list[NamedAsset],
@@ -346,7 +351,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
 
     # REQUIRED. The STAC version the Item implements.
     # TODO: figure out how to support reading and writing differently?
-    stac_version: Literal["1.1.0"]
+    stac_version: Literal["1.1.0", "1.0.0"]
 
     # A list of extensions the Item implements.
     # -- unique and URI
@@ -366,7 +371,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     # RFC 7946, section 3.1 if a geometry is provided or section 3.2 if no geometry is provided.
     # section 3.1: Geometry definitions and  section 3.2: null
     # -- GeometryCollection is disallowed, but no one uses the others either
-    geometry: Polygon  # | MultiPolygon
+    geometry: Polygon | MultiPolygon
 
     # REQUIRED if geometry is not null, prohibited if geometry is null. Bounding Box of the asset
     # represented by this Item, formatted according to RFC 7946, section 5.
