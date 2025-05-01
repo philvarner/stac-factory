@@ -76,7 +76,7 @@ def test_item_create_minimal() -> None:
             "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
         },
         bbox=[100, 0, 101, 1],
-        assets={},
+        assets=[],
         links=[],
         datetime="2021-01-01T00:00:00Z",
     )
@@ -111,14 +111,14 @@ def test_item_create_minimal_mp() -> None:
             ],
         },
         bbox=[100, 0, 101, 1],
-        assets={},
+        assets=[],
         links=[],
         datetime="2021-01-01T00:00:00Z",
     )
 
 
 def test_item_create_typical() -> None:
-    Item.create(
+    item = Item.create(
         stac_extensions=["https://stac-extensions.github.io/eo/v2.0.0/schema.json"],
         id="normal-item-1",
         geometry={
@@ -126,15 +126,16 @@ def test_item_create_typical() -> None:
             "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
         },
         bbox=[100, 0, 101, 1],
-        assets={
-            "asset1": Asset.create(
+        assets=[
+            Asset.create(
+                name="asset1",
                 href="https://api.example.com/x.json",
                 title="an item",
                 description="an item description",
                 type=MediaType.JSON,
                 roles=[AssetRole.data],
             ),
-        },
+        ],
         links=[
             Link.create(
                 href="https://api.example.com/x.json",
@@ -147,6 +148,11 @@ def test_item_create_typical() -> None:
             ),
         ],
         datetime="2021-01-01T00:00:00Z",
+    )
+
+    assert (
+        item.model_dump_json()
+        == '{"type":"Feature","stac_version":"1.1.0","stac_extensions":["https://stac-extensions.github.io/eo/v2.0.0/schema.json"],"id":"normal-item-1","geometry":{"type":"Polygon","coordinates":[[[100.0,0.0],[101.0,0.0],[101.0,1.0],[100.0,1.0],[100.0,0.0]]]},"bbox":[100.0,0.0,101.0,1.0],"properties":{"datetime":"2021-01-01T00:00:00Z"},"links":[{"href":"https://api.example.com/x.json","rel":"canonical","type":"application/json","title":"an item","method":"get","headers":null,"body":null}],"assets":{"asset1":{"href":"https://api.example.com/x.json","title":"an item","description":"an item description","type":"application/json","roles":["data"]}},"collection":null}'  # noqa: E501
     )
 
 

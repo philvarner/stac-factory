@@ -1,5 +1,6 @@
+from collections.abc import Mapping
 from datetime import timezone
-from typing import Annotated, Literal, NamedTuple, Protocol, Self, TypedDict, Unpack
+from typing import Annotated, Any, Literal, NamedTuple, Protocol, Self, TypedDict, Unpack
 
 from annotated_types import Ge, Le
 from pydantic import (
@@ -9,8 +10,10 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    SerializationInfo,
     Strict,
     StringConstraints,
+    field_serializer,
     field_validator,
     model_serializer,
     model_validator,
@@ -24,10 +27,17 @@ from stac_factory.constants import HttpMethod
 # GJ - GeoJSON spec: https://datatracker.ietf.org/doc/html/rfc7946
 
 # Basic JSON object type annotation
-type JSONValue = str | int | float | bool | None | dict[str, "JSONValue"] | list["JSONValue"]
-type JSONObject = dict[str, JSONValue]
+type JSONFieldName = Annotated[
+    str, StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.:a-zA-Z0-9]+$"), Strict()
+]
+type JSONValue = (
+    str | URI | int | float | bool | None | dict[str, "JSONValue"] | list["JSONValue"]
+)  # todo: constrain strs here?
+type JSONObject = dict[JSONFieldName, JSONValue]
 
 type ShortStr = Annotated[str, StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
+type LicenseStr = ShortStr  # todo: make better with literal enums and SPDX
+type BodyStr = Annotated[str, StringConstraints(min_length=1, max_length=10000)]
 
 # BP - searchable identifiers lowercase characters, numbers, _, and -
 type Identifier = ShortStr
@@ -205,8 +215,8 @@ class Link(Commons):
         title: Title | None = None,
         # TODO: description?
         method: HttpMethod | None = None,
-        headers: dict[str, str | list[str]] | None = None,
-        body: str | JSONObject | None = None,
+        headers: dict[str, str | list[str]] | None = None,  # todo: strs
+        body: BodyStr | JSONObject | None = None,
     ) -> Self:
         return cls.model_validate(
             {
@@ -241,43 +251,21 @@ class Link(Commons):
     method: HttpMethod | None = None
 
     # The HTTP headers to be sent for the request to the target resource.
-    headers: dict[str, str | list[str]] | None = None
+    headers: dict[str, str | list[str]] | None = None  # todo: strs
 
     # The HTTP body to be sent to the target resource.
-    body: str | JSONObject | None = None
+    body: BodyStr | JSONObject | None = None
 
     # TODO:
     # validate   - deprecated: image/vnd.stac.geotiff and Cloud Optimized GeoTiffs used
     # image/vnd.stac.geotiff; profile=cloud-optimized.
 
 
-type AssetName = Annotated[str, StringConstraints(min_length=1, max_length=32, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
-
 type Role = Annotated[str, StringConstraints(pattern=r"^[-a-zA-Z0-9]+$"), Strict()]
 
 
-class Asset(BaseModel):
+class NamelessAsset(BaseModel):
     # https://github.com/radiantearth/stac-spec/blob/master/commons/assets.md
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        href: URI,
-        title: Title | None = None,
-        description: Description | None = None,
-        type: MediaType | None = None,
-        roles: list[Role] | None = None,  # ?
-    ) -> Self:
-        return cls.model_validate(
-            {
-                "href": href,
-                "title": title,
-                "description": description,
-                "type": type,
-                "roles": roles,
-            },
-        )
 
     # REQUIRED. URI to the asset object. Relative and absolute URI are both allowed. Trailing slashes are significant.
     href: URI
@@ -303,8 +291,45 @@ class Asset(BaseModel):
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
-class NamedAsset(Asset):
+type AssetName = Annotated[str, StringConstraints(min_length=1, max_length=32, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
+
+
+class Asset(NamelessAsset):
     name: AssetName
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        name: AssetName,
+        href: URI,
+        title: Title | None = None,
+        description: Description | None = None,
+        type: MediaType | None = None,
+        roles: list[Role] | None = None,  # ?
+        **_kwargs: dict[str, Any],
+    ) -> Self:
+        return cls.model_validate(
+            {
+                "name": name,
+                "href": href,
+                "title": title,
+                "description": description,
+                "type": type,
+                "roles": roles,
+            },
+        )
+
+    @classmethod
+    def named(
+        cls,
+        *,
+        name: AssetName,
+        asset: Mapping[str, Any],
+    ) -> Self:
+        return cls.create(name=name, **asset)
+
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class ItemExtension(Protocol):
@@ -322,7 +347,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
         geometry: Polygon | MultiPolygon,
         bbox: BBox2d | BBox3d,
         links: list[Link],
-        assets: list[NamedAsset],
+        assets: list[Asset],
         collection: CollectionIdentifier | None = None,
         **properties: Unpack[ItemProperties],
     ) -> "Item":
@@ -379,7 +404,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
 
     @field_validator("bbox", mode="before")
     @classmethod
-    def bbox_field_validator(cls, v: list[float]) -> BBox2d | BBox3d:
+    def bbox_field_validator(cls, v: list[float] | BBox2d | BBox3d) -> BBox2d | BBox3d:
         if isinstance(v, list):
             match len(v):
                 case 4:
@@ -407,7 +432,18 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
 
     # REQUIRED. Dictionary of asset objects that can be downloaded, each with a unique key.
     # TODO: has an asset with `data`
-    assets: dict[AssetName, Asset]
+    assets: list[Asset]
+
+    @field_validator("assets", mode="before")
+    @classmethod
+    def assets_field_validator(cls, v: dict[AssetName, JSONObject] | list[Asset]) -> list[Asset]:
+        if isinstance(v, dict):
+            return [Asset.named(name=k, asset=v) for k, v in v.items()]
+        return v
+
+    @field_serializer("assets")
+    def serialize_assets(self, assets: list[Asset], _info: SerializationInfo) -> dict[AssetName, JSONObject]:
+        return {asset.name: asset.model_dump(exclude={"name"}) for asset in assets}
 
     # The id of the STAC Collection this Item references to. This field is required if a
     # link with a collection relation type is present and is not allowed otherwise.
@@ -473,6 +509,6 @@ class DateAndTime(Common):
 
 class SomethingElse(Common):
     # License(s) of the data as SPDX License identifier, SPDX License expression, or other (see below).
-    license: str
+    license: LicenseStr
 
     # to be continued...

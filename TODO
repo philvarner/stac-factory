@@ -2,15 +2,11 @@
 
 Features:
 
-- remove all str definitions
-- fix assets
 - test validate populated Item - assets is wrong
-- re-add MultiPolygon
-- move datetime, start_datetime and end_datetime to top-level
-- rework properties
+- rework properties, move datetime, start_datetime and end_datetime to top-level
 - Extensions - EO, View
 - convert dunders to colon -- handle properiteary extensions wo schema
-- add __geo_interface__
+- remove all str definitions
 
 Validations:
 
@@ -27,6 +23,7 @@ Validations:
 - cli
   - write schema
 - robust developing section
+- add __geo_interface__
 
 - add more validation to item model
 

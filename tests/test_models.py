@@ -80,16 +80,6 @@ def test_polygon_with_holes_raises() -> None:
         )
 
 
-def test_asset_create() -> None:
-    Asset.create(
-        href="https://api.example.com/x.json",
-        title="an item",
-        description="an item description",
-        type=MediaType.JSON,
-        roles=[AssetRole.data],
-    )
-
-
 def test_link_create() -> None:
     Link.create(
         href="https://api.example.com/x.json",
@@ -99,4 +89,15 @@ def test_link_create() -> None:
         method=HttpMethod.GET,
         headers=None,
         body=None,
+    )
+
+
+def test_asset_create() -> None:
+    Asset(
+        name="foo",
+        href="https://api.example.com/x.json",
+        title="an item",
+        description="an item description",
+        type=MediaType.JSON,
+        roles=[AssetRole.data],
     )
