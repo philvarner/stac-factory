@@ -8,11 +8,7 @@ maintainers = [{ name = "Phil Varner", email = "philvarner@gmail.com" }]
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 dependencies = [
-    "codespell>=2.4.1",
     "pydantic>=2.11.3",
-    # "antimeridian>=0.4.1",
-    # "shapely>=2.1.0",
-    # "jsonschema>=4.19.1",
 ]
 
 [dependency-groups]
@@ -23,6 +19,7 @@ dev = [
     "pre-commit>=4.2.0",
     "pre-commit-hooks>=5.0.0",
     "pymarkdownlnt>=0.9.25",
+    "pystac>=1.13.0",
     "pytest>=8",
     "pytest-cov>=4.1.0",
     "pytest-sugar>=1.0.0",

@@ -2,8 +2,13 @@
 
 Features:
 
+- assets serializer
+- assets validator
+- tests working again
 - test validate populated Item - assets is wrong
-- rework properties, move datetime, start_datetime and end_datetime to top-level
+- anyurl not writing correctly -- mode
+- rework properties, move datetime to top-level
+- add start_datetime and end_datetime to top-level
 - Extensions - EO, View
 - convert dunders to colon -- handle properiteary extensions wo schema
 - remove all str definitions

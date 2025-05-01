@@ -2,6 +2,8 @@ import json
 
 from pathlib import Path
 
+import pystac
+import pystac.utils
 import pytest
 
 from pydantic import ValidationError
@@ -58,7 +60,9 @@ def test_item_typical() -> None:
 def test_item_sentinel_2() -> None:
     fixture_dir = Path(__file__).parent.absolute() / "fixtures"
     item_dict = json.loads(Path(fixture_dir / "S2B_T38XNF_20250422T091553_L2A.json").read_text())
-    Item.model_validate(item_dict)
+    item = Item.model_validate(item_dict)
+
+    assert item.model_dump() == {}
 
 
 def test_item_sentinel_2_multipolygon() -> None:
@@ -79,6 +83,7 @@ def test_item_create_minimal() -> None:
         assets=[],
         links=[],
         datetime="2021-01-01T00:00:00Z",
+        collection=None,
     )
 
 
@@ -114,6 +119,7 @@ def test_item_create_minimal_mp() -> None:
         assets=[],
         links=[],
         datetime="2021-01-01T00:00:00Z",
+        collection=None,
     )
 
 
@@ -147,13 +153,44 @@ def test_item_create_typical() -> None:
                 body=None,
             ),
         ],
-        datetime="2021-01-01T00:00:00Z",
+        datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
+        collection=None,
     )
 
-    assert (
-        item.model_dump_json()
-        == '{"type":"Feature","stac_version":"1.1.0","stac_extensions":["https://stac-extensions.github.io/eo/v2.0.0/schema.json"],"id":"normal-item-1","geometry":{"type":"Polygon","coordinates":[[[100.0,0.0],[101.0,0.0],[101.0,1.0],[100.0,1.0],[100.0,0.0]]]},"bbox":[100.0,0.0,101.0,1.0],"properties":{"datetime":"2021-01-01T00:00:00Z"},"links":[{"href":"https://api.example.com/x.json","rel":"canonical","type":"application/json","title":"an item","method":"get","headers":null,"body":null}],"assets":{"asset1":{"href":"https://api.example.com/x.json","title":"an item","description":"an item description","type":"application/json","roles":["data"]}},"collection":null}'  # noqa: E501
-    )
+    assert item.model_dump(mode="json") == {
+        "type": "Feature",
+        "stac_version": "1.1.0",
+        "stac_extensions": ["https://stac-extensions.github.io/eo/v2.0.0/schema.json"],
+        "id": "normal-item-1",
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
+        },
+        "bbox": [100.0, 0.0, 101.0, 1.0],
+        "properties": {"datetime": "2021-01-01T00:00:00Z"},
+        "links": [
+            {
+                "href": "https://api.example.com/x.json",
+                "rel": "canonical",
+                "type": "application/json",
+                "title": "an item",
+                "method": "get",
+                "headers": None,
+                "body": None,
+            }
+        ],
+        "assets": {
+            "asset1": {
+                "name": "asset1",
+                "href": "https://api.example.com/x.json",
+                "title": "an item",
+                "description": "an item description",
+                "type": "application/json",
+                "roles": ["data"],
+            }
+        },
+        "collection": None,
+    }
 
 
 def test_item_with_duplicate_stac_extensions() -> None:

@@ -11,6 +11,7 @@ from pydantic import (
     ConfigDict,
     Field,
     SerializationInfo,
+    SerializerFunctionWrapHandler,
     Strict,
     StringConstraints,
     field_serializer,
@@ -165,17 +166,7 @@ type UtcDatetime = Annotated[
 ]
 
 
-class ItemProperties(TypedDict):
-    # REQUIRED. The searchable date and time of the assets, which must be in UTC.
-    # It is formatted according to RFC 3339, section 5.6. null is allowed, but
-    # requires start_datetime and end_datetime from common metadata to be set.
-    datetime: UtcDatetime  # TODO: validate -- but can be null
-
-    # datetime is not null or all three defined and s & e not null
-    #                         "datetime",
-    #                     "start_datetime",
-    #                     "end_datetime"
-    # must be utc
+class ItemProperties(TypedDict): ...
 
 
 type URI = AnyUrl
@@ -337,6 +328,9 @@ class ItemExtension(Protocol):
         return item
 
 
+type UtcDatetimeInterval = tuple[UtcDatetime | None, UtcDatetime | None]
+
+
 class Item(BaseModel):  # , Generic[Geom, Props]):
     @classmethod
     def create(
@@ -348,7 +342,8 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
         bbox: BBox2d | BBox3d,
         links: list[Link],
         assets: list[Asset],
-        collection: CollectionIdentifier | None = None,
+        collection: CollectionIdentifier | None,
+        datetime: UtcDatetime,  # | UtcDatetimeInterval,
         **properties: Unpack[ItemProperties],
     ) -> "Item":
         x = cls.model_validate(
@@ -363,6 +358,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                 "links": links,
                 "assets": assets,
                 "collection": collection,
+                "datetime": datetime,
             },
         )
 
@@ -422,9 +418,6 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                     raise ValueError("BBox requires exactly 4 or 6 coordinates")
         return v
 
-    # REQUIRED. A dictionary of additional metadata for the Item.
-    properties: ItemProperties
-
     # REQUIRED. List of link objects to resources and related URLs. See the best practices
     # https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#use-of-links
     # for details on when the use self links is strongly recommended.
@@ -448,7 +441,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     # The id of the STAC Collection this Item references to. This field is required if a
     # link with a collection relation type is present and is not allowed otherwise.
     # TODO - different than I expected!
-    collection: CollectionIdentifier | None = None
+    collection: CollectionIdentifier | None
 
     # Assets & Properties bands
     # If there is no asset with bands...
@@ -460,6 +453,46 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     #     return self.model_dump(mode="json")
 
     # collection/c_link validator
+
+    # -----------
+
+    # REQUIRED. The searchable date and time of the assets, which must be in UTC.
+    # It is formatted according to RFC 3339, section 5.6. null is allowed, but
+    # requires start_datetime and end_datetime from common metadata to be set.
+    datetime: UtcDatetime  # | UtcDatetimeInterval
+
+    # @field_validator("datetime", mode="before")
+    # @classmethod
+    # def datetime_field_validator(cls, v: UtcDatetime | str | None) -> UtcDatetime:
+    #     if isinstance(v, str):
+    #         return [Asset.named(name=k, asset=v) for k, v in v.items()]
+    #     return v
+
+    # datetime is not null or all three defined and s & e not null
+    #                         "datetime",
+    #                     "start_datetime",
+    #                     "end_datetime"
+    # must be utc
+
+    @model_serializer(mode="wrap", when_used="json")
+    def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
+        top_level = {
+            "type",
+            "stac_version",
+            "stac_extensions",
+            "id",
+            "geometry",
+            "bbox",
+            "links",
+            "assets",
+            "collection",
+        }
+        item_dict = {k: v for k, v in self if k in top_level}
+        item_dict["assets"] = {asset.name: asset for asset in item_dict["assets"]}  # todo: exclude name
+
+        props_dict = {k: v for k, v in self if k not in top_level}
+
+        return nxt(item_dict | {"properties": props_dict})
 
     model_config = ConfigDict(extra="ignore", frozen=True)
 
@@ -484,9 +517,6 @@ class Basics(Common):
 
 
 class DateAndTime(Common):
-    # See the Item Specification Fields for more information.
-    datetime: UtcDatetime | None
-
     # Creation date and time of the corresponding STAC entity or Asset (see below), in UTC.
     created: UtcDatetime
 
