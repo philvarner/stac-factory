@@ -2,7 +2,7 @@
 
 Features:
 
-- rework properties, move datetime to top-level
+- rework properties, move datetime to top-level - extract datetime from Properties
 - add start_datetime and end_datetime to top-level
 - Extensions - EO, View
 - convert dunders to colon -- handle properiteary extensions wo schema

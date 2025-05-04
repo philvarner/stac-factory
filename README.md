@@ -9,15 +9,20 @@
 
 ## Overview
 
-correct, not just valid wrt schema
+The purpose of stac-factory is to provide library support for creating and validating **correct** STAC Items.
+While many of the constraints of STAC are expressible in the JSON Schemas of the STAC specification, there are
+many requirements and best practices that are not formally defined, and this library attempts to also enforce those
+when working with STAC Items.
 
-Handle the 80% of cases correctly, rather than 100% loosely.
+There are two primary use cases for stac-factory:
 
-Use cases:
+1. **Construct** correct STAC Items from metadata
+2. **Validate** existing STAC Items from JSON
 
-1. Creating correct STAC Items from other metadata
-2. Validate existing STAC Item JSON
-3. Tightly-typed to surface as many type errors as possible via mypy before pydantic dynamic validation
+Reading and writing arbitrary STAC JSON Items is not an objective of this library. If you need to do that, you're
+better off using a library like PySTAC, which intentionally has much looser constraints on its object model.
+
+Additionally, the tightly-typed object model helps to surface as many type errors via mypy before the pydantic dynamic validation, so you can catch issue before they happen at runtime.
 
 To quote Mike Admunsen, "your data model is not your object model is not your resource model is not your message model".
 STAC is defined as an ontology (the names of things and how they relate) coupled to a representation format (JSON).
@@ -32,14 +37,14 @@ just be aware of these differences. (todo: enumerate the differences)
 
 STAC Factory is published as `stac-factory` in PyPi.
 
-## Why another Python STAC object model library?
+## Why yet another Python STAC object model library?
 
 Other libraries, such as pystac and stac-pydantic, are built for general-purpose use,
-and intentional have relaxed typing and validation. This aligns with the robustness principle (Postel's law)
+and intentionally have more relaxed typing and validation. This aligns with the robustness principle (Postel's law)
 of "be conservative in what you do, be liberal in what you accept from others". Since most consumers of
 STAC objects have no control over the contents of the JSON-serialized objects they're reading, the libraries are liberal
-in what they accept, and are able to read most any JSON into an STAC object.  However, they leave the "conservative
-in what you do" part up to the user (rephrase) -- they will also serialize most any object to JSON, even if it's invalid with
+in what they accept, and are able to read most any JSON into a STAC object.  However, they leave the "conservative
+in what you do" part up to the user -- they will also serialize most any object to JSON, even if it's invalid with
 respect to the
 spec, and leave it up to the rest of the application to validate it is correct.
 
@@ -162,7 +167,6 @@ A tightly-typed model for creating STAC Items.
 Performance is not a driving concern, correctness is.
 
 "flat" model - properties are not nested in the object model
-
 
 ## Possible errors
 
