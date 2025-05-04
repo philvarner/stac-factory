@@ -74,28 +74,6 @@ class Accuracy(Enum):
     _11100 = 1
     _111000 = 0
 
-# class MultiPolygon(BaseModel):
-#     type: Literal["MultiPolygon"]
-#     coordinates: MultiPolygonCoordinates
-
-#     @property
-#     def __geo_interface__(self) -> dict[str, Any]:
-#         return self.model_dump(mode="json")
-
-#     #     @field_validator("coordinates")
-#     #     def check_closure(cls, coordinates: List) -> List:
-#     #         """Validate that Polygon is closed (first and last coordinate are the same)."""
-#     #         if any(ring[-1] != ring[0] for polygon in coordinates for ring in polygon):
-#     #             raise ValueError("All linear rings have the same start and end coordinates")
-
-#     #         return coordinates
-
-#     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
-
-
-
-
-
 extra fields
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
@@ -128,3 +106,24 @@ class ModelWithExtraFields(BaseModel):
         # This prevents extra_fields from being included in serialized output
         # Extra fields are already mixed in with the regular fields
         return None
+
+
+
+
+# class Assets(BaseModel):
+#     assets: list[Asset]
+
+
+#     @model_serializer(mode="wrap", when_used="json")
+#     def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
+#         # todo: exclude name
+#         return nxt({asset.name: asset.model_dump() for asset in self.assets})
+
+#     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
+    # @field_validator("assets", mode="before")
+    # @classmethod
+    # def assets_field_validator(cls, v: dict[AssetName, JSONObject] | list[Asset]) -> list[Asset]:
+    #     if isinstance(v, dict):
+    #         return [Asset.named(name=k, asset=v) for k, v in v.items()]
+    #     return v

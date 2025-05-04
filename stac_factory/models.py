@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from datetime import timezone
-from typing import Annotated, Any, Literal, NamedTuple, Protocol, Self, TypedDict, Unpack
+from typing import Annotated, Any, Literal, NamedTuple, Protocol, Self, TypedDict
 
 from annotated_types import Ge, Le
 from pydantic import (
@@ -14,7 +14,6 @@ from pydantic import (
     SerializerFunctionWrapHandler,
     Strict,
     StringConstraints,
-    field_serializer,
     field_validator,
     model_serializer,
     model_validator,
@@ -48,6 +47,7 @@ type StacExtensionIdentifier = Annotated[
     str,
     StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.:/a-zA-Z0-9]+$"),  # TODO: URI?
 ]
+
 
 type Lat = Annotated[float, Ge(-90.0), Le(90)]
 type Lon = Annotated[float, Ge(-180.0), Le(180)]
@@ -86,31 +86,20 @@ class Polygon(BaseModel):
 
     #         return coordinates
 
-    # @property
-    # def __geo_interface__(self) -> dict[str, Any]:
-    #     return self.model_dump(mode="json")
-
-    # @classmethod
-    # def from_bbox(cls, bbox: BBox2d | BBox3d) -> "Polygon":
-    #     return cls(
-    #         type="Polygon",
-    #         coordinates=[
-    #             [
-    #                 Position2D(bbox.w_lon, bbox.s_lat),
-    #                 Position2D(bbox.e_lon, bbox.s_lat),
-    #                 Position2D(bbox.e_lon, bbox.n_lat),
-    #                 Position2D(bbox.w_lon, bbox.n_lat),
-    #                 Position2D(bbox.w_lon, bbox.s_lat),
-    #             ]
-    #         ],
-    #     )
-
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class MultiPolygon(BaseModel):
     type: Literal["MultiPolygon"]
     coordinates: MultiPolygonCoordinates
+
+    #     #     @field_validator("coordinates")
+    #     #     def check_closure(cls, coordinates: List) -> List:
+    #     #         """Validate that Polygon is closed (first and last coordinate are the same)."""
+    #     #         if any(ring[-1] != ring[0] for polygon in coordinates for ring in polygon):
+    #     #             raise ValueError("All linear rings have the same start and end coordinates")
+
+    #     #         return coordinates
 
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
@@ -166,7 +155,8 @@ type UtcDatetime = Annotated[
 ]
 
 
-class ItemProperties(TypedDict): ...
+class ItemProperties(TypedDict):
+    datetime: UtcDatetime
 
 
 type URI = AnyUrl
@@ -323,6 +313,31 @@ class Asset(NamelessAsset):
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
+class Assets(BaseModel):
+    assets: list[Asset] = Field(default_factory=list)
+
+    @classmethod
+    def create(
+        cls,
+        assets: list[Asset],
+    ) -> "Assets":
+        return cls.model_validate({"assets": assets})
+
+    @model_validator(mode="before")
+    @classmethod
+    def transform_assets_dict_to_list(cls, v: Any) -> Any:  # noqa: ANN401
+        if isinstance(v, dict) and (assets := v.get("assets")) and isinstance(assets, dict):
+            for asset_name, asset in assets.items():
+                asset["name"] = asset_name
+            return cls.model_construct(assets=[Asset.model_validate(x) for x in v.values()])
+        return v
+
+    @model_serializer(mode="wrap", when_used="json")
+    def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
+        # todo: exclude name
+        return nxt({asset.name: asset.model_dump(exclude={"name"}) for asset in self.assets})
+
+
 class ItemExtension(Protocol):
     def apply(self, item: "Item") -> "Item":
         return item
@@ -341,10 +356,11 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
         geometry: Polygon | MultiPolygon,
         bbox: BBox2d | BBox3d,
         links: list[Link],
-        assets: list[Asset],
+        assets: Assets | list[Asset],
+        properties: ItemProperties,
         collection: CollectionIdentifier | None,
-        datetime: UtcDatetime,  # | UtcDatetimeInterval,
-        **properties: Unpack[ItemProperties],
+        # datetime: UtcDatetime,  # | UtcDatetimeInterval,
+        # **properties: Unpack[ItemProperties],
     ) -> "Item":
         x = cls.model_validate(
             {
@@ -356,9 +372,9 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                 "bbox": bbox,
                 "properties": properties,
                 "links": links,
-                "assets": assets,
+                "assets": assets if isinstance(assets, Assets) else Assets(assets=assets),
                 "collection": collection,
-                "datetime": datetime,
+                # "datetime": datetime,
             },
         )
 
@@ -425,18 +441,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
 
     # REQUIRED. Dictionary of asset objects that can be downloaded, each with a unique key.
     # TODO: has an asset with `data`
-    assets: list[Asset]
-
-    @field_validator("assets", mode="before")
-    @classmethod
-    def assets_field_validator(cls, v: dict[AssetName, JSONObject] | list[Asset]) -> list[Asset]:
-        if isinstance(v, dict):
-            return [Asset.named(name=k, asset=v) for k, v in v.items()]
-        return v
-
-    @field_serializer("assets")
-    def serialize_assets(self, assets: list[Asset], _info: SerializationInfo) -> dict[AssetName, JSONObject]:
-        return {asset.name: asset.model_dump(exclude={"name"}) for asset in assets}
+    assets: Assets
 
     # The id of the STAC Collection this Item references to. This field is required if a
     # link with a collection relation type is present and is not allowed otherwise.
@@ -448,18 +453,16 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     #     ... then bands are not allowed in properties...
     #     ... otherwise bands are allowed in properties.
 
-    # @property
-    # def __geo_interface__(self) -> dict[str, Any]:
-    #     return self.model_dump(mode="json")
-
     # collection/c_link validator
 
     # -----------
 
+    properties: ItemProperties
+
     # REQUIRED. The searchable date and time of the assets, which must be in UTC.
     # It is formatted according to RFC 3339, section 5.6. null is allowed, but
     # requires start_datetime and end_datetime from common metadata to be set.
-    datetime: UtcDatetime  # | UtcDatetimeInterval
+    # datetime: UtcDatetime  # | UtcDatetimeInterval
 
     # @field_validator("datetime", mode="before")
     # @classmethod
@@ -474,25 +477,25 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     #                     "end_datetime"
     # must be utc
 
-    @model_serializer(mode="wrap", when_used="json")
-    def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
-        top_level = {
-            "type",
-            "stac_version",
-            "stac_extensions",
-            "id",
-            "geometry",
-            "bbox",
-            "links",
-            "assets",
-            "collection",
-        }
-        item_dict = {k: v for k, v in self if k in top_level}
-        item_dict["assets"] = {asset.name: asset for asset in item_dict["assets"]}  # todo: exclude name
+    # @model_serializer(mode="wrap", when_used="json")
+    # def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
+    #     top_level = {
+    #         "type",
+    #         "stac_version",
+    #         "stac_extensions",
+    #         "id",
+    #         "geometry",
+    #         "bbox",
+    #         "links",
+    #         "assets",
+    #         "collection",
+    #     }
+    #     item_dict = {k: v for k, v in self if k in top_level}
+    #     item_dict["assets"] = {asset.name: asset for asset in item_dict["assets"]}  # todo: exclude name, dupe?
 
-        props_dict = {k: v for k, v in self if k not in top_level}
+    #     props_dict = {k: v for k, v in self if k not in top_level}
 
-        return nxt(item_dict | {"properties": props_dict})
+    #     return nxt(item_dict | {"properties": props_dict})
 
     model_config = ConfigDict(extra="ignore", frozen=True)
 

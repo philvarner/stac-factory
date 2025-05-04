@@ -6,7 +6,6 @@ Features:
 - assets validator
 - tests working again
 - test validate populated Item - assets is wrong
-- anyurl not writing correctly -- mode
 - rework properties, move datetime to top-level
 - add start_datetime and end_datetime to top-level
 - Extensions - EO, View
@@ -28,7 +27,6 @@ Validations:
 - cli
   - write schema
 - robust developing section
-- add __geo_interface__
 
 - add more validation to item model
 

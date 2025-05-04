@@ -9,7 +9,7 @@ import pytest
 from pydantic import ValidationError
 
 from stac_factory.constants import AssetRole, HttpMethod, LinkRelation, MediaType
-from stac_factory.models import Asset, Item, Link
+from stac_factory.models import Asset, Item, ItemProperties, Link
 
 
 def test_item_with_bbox3d() -> None:
@@ -62,7 +62,122 @@ def test_item_sentinel_2() -> None:
     item_dict = json.loads(Path(fixture_dir / "S2B_T38XNF_20250422T091553_L2A.json").read_text())
     item = Item.model_validate(item_dict)
 
-    assert item.model_dump() == {}
+    assert item.model_dump(mode="json") == {
+        "assets": {},
+        "bbox": [
+            47.014448,
+            72.738194,
+            48.35946,
+            72.985776,
+        ],
+        "collection": "sentinel-2-c1-l2a",
+        "geometry": {
+            "coordinates": [
+                [
+                    [
+                        47.014447961653765,
+                        72.98577616786422,
+                    ],
+                    [
+                        48.31602812874022,
+                        72.73819381414839,
+                    ],
+                    [
+                        48.35945964281699,
+                        72.96809534281054,
+                    ],
+                    [
+                        47.014447961653765,
+                        72.98577616786422,
+                    ],
+                ],
+            ],
+            "type": "Polygon",
+        },
+        "id": "S2B_T38XNF_20250422T091553_L2A",
+        "links": [
+            {
+                "body": None,
+                "headers": None,
+                "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a/items/S2B_T38XNF_20250422T091553_L2A",
+                "method": None,
+                "rel": "self",
+                "title": None,
+                "type": "application/geo+json",
+            },
+            {
+                "body": None,
+                "headers": None,
+                "href": "s3://e84-earth-search-sentinel-data/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/S2B_T38XNF_20250422T091553_L2A.json",
+                "method": None,
+                "rel": "canonical",
+                "title": None,
+                "type": "application/json",
+            },
+            {
+                "body": None,
+                "headers": None,
+                "href": "s3://sentinel-s2-l2a/tiles/38/X/NF/2025/4/22/0/metadata.xml",
+                "method": None,
+                "rel": "via",
+                "title": "Granule Metadata in Sinergize RODA Archive",
+                "type": "application/xml",
+            },
+            {
+                "body": None,
+                "headers": None,
+                "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a",
+                "method": None,
+                "rel": "parent",
+                "title": None,
+                "type": "application/json",
+            },
+            {
+                "body": None,
+                "headers": None,
+                "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a",
+                "method": None,
+                "rel": "collection",
+                "title": None,
+                "type": "application/json",
+            },
+            {
+                "body": None,
+                "headers": None,
+                "href": "https://earth-search.aws.element84.com/v1",
+                "method": None,
+                "rel": "root",
+                "title": None,
+                "type": "application/json",
+            },
+            {
+                "body": None,
+                "headers": None,
+                "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a/items/S2B_T38XNF_20250422T091553_L2A/thumbnail",
+                "method": None,
+                "rel": "thumbnail",
+                "title": None,
+                "type": None,
+            },
+        ],
+        "properties": {
+            "datetime": "2025-04-22T09:19:42.556000Z",
+        },
+        "stac_extensions": [
+            "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
+            "https://stac-extensions.github.io/file/v2.1.0/schema.json",
+            "https://stac-extensions.github.io/grid/v1.1.0/schema.json",
+            "https://stac-extensions.github.io/mgrs/v1.0.0/schema.json",
+            "https://stac-extensions.github.io/processing/v1.1.0/schema.json",
+            "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+            "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
+            "https://stac-extensions.github.io/sentinel-2/v1.0.0/schema.json",
+            "https://stac-extensions.github.io/storage/v1.0.0/schema.json",
+            "https://stac-extensions.github.io/view/v1.0.0/schema.json",
+        ],
+        "stac_version": "1.1.0",
+        "type": "Feature",
+    }
 
 
 def test_item_sentinel_2_multipolygon() -> None:
@@ -82,7 +197,7 @@ def test_item_create_minimal() -> None:
         bbox=[100, 0, 101, 1],
         assets=[],
         links=[],
-        datetime="2021-01-01T00:00:00Z",
+        properties=ItemProperties(datetime="2021-01-01T00:00:00Z"),
         collection=None,
     )
 
@@ -118,7 +233,7 @@ def test_item_create_minimal_mp() -> None:
         bbox=[100, 0, 101, 1],
         assets=[],
         links=[],
-        datetime="2021-01-01T00:00:00Z",
+        properties=ItemProperties(datetime="2021-01-01T00:00:00Z"),
         collection=None,
     )
 
@@ -153,7 +268,9 @@ def test_item_create_typical() -> None:
                 body=None,
             ),
         ],
-        datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
+        properties=ItemProperties(
+            datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
+        ),
         collection=None,
     )
 
@@ -181,7 +298,6 @@ def test_item_create_typical() -> None:
         ],
         "assets": {
             "asset1": {
-                "name": "asset1",
                 "href": "https://api.example.com/x.json",
                 "title": "an item",
                 "description": "an item description",
