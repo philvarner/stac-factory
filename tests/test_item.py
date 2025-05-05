@@ -63,7 +63,229 @@ def test_item_sentinel_2() -> None:
     item = Item.model_validate(item_dict)
 
     assert item.model_dump(mode="json") == {
-        "assets": {},
+        "assets": {
+            "aot": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/AOT.tif",
+                "roles": [
+                    "data",
+                ],
+                "title": "Aerosol optical thickness (AOT)",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "blue": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B02.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "Blue - 10m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "cloud": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/CLD_20m.tif",
+                "roles": [
+                    "data",
+                    "cloud",
+                ],
+                "title": "Cloud Probabilities",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "coastal": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B01.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "Coastal - 60m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "granule_metadata": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/metadata.xml",
+                "roles": [
+                    "metadata",
+                ],
+                "title": None,
+                "type": "application/xml",
+            },
+            "green": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B03.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "Green - 10m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "nir": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B08.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "NIR 1 - 10m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "nir08": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B8A.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "NIR 2 - 20m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "nir09": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B09.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "NIR 3 - 60m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "preview": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/L2A_PVI.tif",
+                "roles": [
+                    "overview",
+                ],
+                "title": "True color preview",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "product_metadata": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/product_metadata.xml",
+                "roles": [
+                    "metadata",
+                ],
+                "title": None,
+                "type": "application/xml",
+            },
+            "red": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B04.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "Red - 10m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "rededge1": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B05.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "Red Edge 1 - 20m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "rededge2": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B06.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "Red Edge 2 - 20m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "rededge3": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B07.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "Red Edge 3 - 20m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "scl": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/SCL.tif",
+                "roles": [
+                    "data",
+                ],
+                "title": "Scene classification map (SCL)",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "snow": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/SNW_20m.tif",
+                "roles": [
+                    "data",
+                    "snow-ice",
+                ],
+                "title": "Snow Probabilities",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "swir16": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B11.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "SWIR 1.6μm - 20m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "swir22": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B12.tif",
+                "roles": [
+                    "data",
+                    "reflectance",
+                ],
+                "title": "SWIR 2.2μm - 20m",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "thumbnail": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/L2A_PVI.jpg",
+                "roles": [
+                    "thumbnail",
+                ],
+                "title": "Thumbnail of preview image",
+                "type": "image/jpeg",
+            },
+            "tileinfo_metadata": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/tileInfo.json",
+                "roles": [
+                    "metadata",
+                ],
+                "title": None,
+                "type": "application/json",
+            },
+            "visual": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/TCI.tif",
+                "roles": [
+                    "visual",
+                ],
+                "title": "True color image",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+            "wvp": {
+                "description": None,
+                "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/WVP.tif",
+                "roles": [
+                    "data",
+                ],
+                "title": "Water Vapour (WVP)",
+                "type": "image/tiff; application=geotiff; profile=cloud-optimized",
+            },
+        },
         "bbox": [
             47.014448,
             72.738194,
@@ -162,6 +384,8 @@ def test_item_sentinel_2() -> None:
         ],
         "properties": {
             "datetime": "2025-04-22T09:19:42.556000Z",
+            "end_datetime": None,
+            "start_datetime": None,
         },
         "stac_extensions": [
             "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
@@ -197,7 +421,8 @@ def test_item_create_minimal() -> None:
         bbox=[100, 0, 101, 1],
         assets=[],
         links=[],
-        properties=ItemProperties(datetime="2021-01-01T00:00:00Z"),
+        properties=ItemProperties(),
+        datetime="2021-01-01T00:00:00Z",
         collection=None,
     )
 
@@ -233,7 +458,8 @@ def test_item_create_minimal_mp() -> None:
         bbox=[100, 0, 101, 1],
         assets=[],
         links=[],
-        properties=ItemProperties(datetime="2021-01-01T00:00:00Z"),
+        properties=ItemProperties(),
+        datetime="2021-01-01T00:00:00Z",
         collection=None,
     )
 
@@ -268,9 +494,8 @@ def test_item_create_typical() -> None:
                 body=None,
             ),
         ],
-        properties=ItemProperties(
-            datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
-        ),
+        properties=ItemProperties(),
+        datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
         collection=None,
     )
 
@@ -284,7 +509,11 @@ def test_item_create_typical() -> None:
             "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
         },
         "bbox": [100.0, 0.0, 101.0, 1.0],
-        "properties": {"datetime": "2021-01-01T00:00:00Z"},
+        "properties": {
+            "datetime": "2021-01-01T00:00:00Z",
+            "end_datetime": None,
+            "start_datetime": None,
+        },
         "links": [
             {
                 "href": "https://api.example.com/x.json",

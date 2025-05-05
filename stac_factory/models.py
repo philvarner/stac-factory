@@ -154,9 +154,11 @@ type UtcDatetime = Annotated[
     AfterValidator(lambda d: d.astimezone(timezone.utc)),
 ]
 
+# todo: use for start/end?
+type UtcDatetimeInterval = tuple[UtcDatetime | None, UtcDatetime | None]
 
-class ItemProperties(TypedDict):
-    datetime: UtcDatetime
+
+class ItemProperties(TypedDict): ...
 
 
 type URI = AnyUrl
@@ -259,12 +261,24 @@ class NamelessAsset(BaseModel):
     description: Description | None = None
 
     # Media type of the asset. See the common media types in the best practice doc for commonly used asset types.
-    type: MediaType | None = None
+    type: MediaType | None = Field(alias="type", default=None)
 
     # The semantic roles of the asset, similar to the use of rel in links.
     roles: list[Role] | None = None
 
     # "$ref": "common.json"
+
+    @classmethod
+    def from_an(cls, asset: "Asset") -> Self:
+        return cls.model_validate(
+            {
+                "href": asset.href,
+                "title": asset.title,
+                "description": asset.description,
+                "type": asset.type,
+                "roles": asset.roles,
+            },
+        )
 
     # TODO : validate
     #   - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands
@@ -313,37 +327,9 @@ class Asset(NamelessAsset):
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
-class Assets(BaseModel):
-    assets: list[Asset] = Field(default_factory=list)
-
-    @classmethod
-    def create(
-        cls,
-        assets: list[Asset],
-    ) -> "Assets":
-        return cls.model_validate({"assets": assets})
-
-    @model_validator(mode="before")
-    @classmethod
-    def transform_assets_dict_to_list(cls, v: Any) -> Any:  # noqa: ANN401
-        if isinstance(v, dict) and (assets := v.get("assets")) and isinstance(assets, dict):
-            for asset_name, asset in assets.items():
-                asset["name"] = asset_name
-            return cls.model_construct(assets=[Asset.model_validate(x) for x in v.values()])
-        return v
-
-    @model_serializer(mode="wrap", when_used="json")
-    def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
-        # todo: exclude name
-        return nxt({asset.name: asset.model_dump(exclude={"name"}) for asset in self.assets})
-
-
 class ItemExtension(Protocol):
     def apply(self, item: "Item") -> "Item":
         return item
-
-
-type UtcDatetimeInterval = tuple[UtcDatetime | None, UtcDatetime | None]
 
 
 class Item(BaseModel):  # , Generic[Geom, Props]):
@@ -356,10 +342,10 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
         geometry: Polygon | MultiPolygon,
         bbox: BBox2d | BBox3d,
         links: list[Link],
-        assets: Assets | list[Asset],
+        assets: list[Asset],
         properties: ItemProperties,
         collection: CollectionIdentifier | None,
-        # datetime: UtcDatetime,  # | UtcDatetimeInterval,
+        datetime: UtcDatetime,
         # **properties: Unpack[ItemProperties],
     ) -> "Item":
         x = cls.model_validate(
@@ -372,9 +358,9 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                 "bbox": bbox,
                 "properties": properties,
                 "links": links,
-                "assets": assets if isinstance(assets, Assets) else Assets(assets=assets),
+                "assets": assets,
                 "collection": collection,
-                # "datetime": datetime,
+                "datetime": datetime,
             },
         )
 
@@ -441,7 +427,18 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
 
     # REQUIRED. Dictionary of asset objects that can be downloaded, each with a unique key.
     # TODO: has an asset with `data`
-    assets: Assets
+    assets: list[Asset]
+
+    @field_validator("assets", mode="before")
+    @classmethod
+    def transform_assets_dict_to_list(cls, v: list[Asset] | dict[str, Asset]) -> list[Asset]:
+        if isinstance(v, list):
+            return v
+        if isinstance(v, dict):
+            for asset_name, asset in v.items():
+                asset.name = asset_name
+            return list(v.values())
+        return v
 
     # The id of the STAC Collection this Item references to. This field is required if a
     # link with a collection relation type is present and is not allowed otherwise.
@@ -462,40 +459,46 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     # REQUIRED. The searchable date and time of the assets, which must be in UTC.
     # It is formatted according to RFC 3339, section 5.6. null is allowed, but
     # requires start_datetime and end_datetime from common metadata to be set.
-    # datetime: UtcDatetime  # | UtcDatetimeInterval
+    # todo: consider collapsing into single and interval?
+    datetime: UtcDatetime | None
+    start_datetime: UtcDatetime | None = None
+    end_datetime: UtcDatetime | None = None
 
-    # @field_validator("datetime", mode="before")
-    # @classmethod
-    # def datetime_field_validator(cls, v: UtcDatetime | str | None) -> UtcDatetime:
-    #     if isinstance(v, str):
-    #         return [Asset.named(name=k, asset=v) for k, v in v.items()]
-    #     return v
+    @model_validator(mode="before")
+    @classmethod
+    def populate_datetimes_from_properties(cls, data: dict[str, Any]) -> dict[str, Any]:
+        for dt_type in ["datetime", "start_datetime", "end_datetime"]:
+            if isinstance(data, dict) and (p := data.get("properties")) and (dt := p.pop(dt_type, None)):
+                data[dt_type] = dt
+        return data
 
+    # todo: validate
     # datetime is not null or all three defined and s & e not null
     #                         "datetime",
     #                     "start_datetime",
     #                     "end_datetime"
-    # must be utc
 
-    # @model_serializer(mode="wrap", when_used="json")
-    # def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
-    #     top_level = {
-    #         "type",
-    #         "stac_version",
-    #         "stac_extensions",
-    #         "id",
-    #         "geometry",
-    #         "bbox",
-    #         "links",
-    #         "assets",
-    #         "collection",
-    #     }
-    #     item_dict = {k: v for k, v in self if k in top_level}
-    #     item_dict["assets"] = {asset.name: asset for asset in item_dict["assets"]}  # todo: exclude name, dupe?
+    _top_level: frozenset[str] = frozenset(
+        {
+            "type",
+            "stac_version",
+            "stac_extensions",
+            "id",
+            "geometry",
+            "bbox",
+            "links",
+            "assets",
+            "collection",
+        }
+    )
 
-    #     props_dict = {k: v for k, v in self if k not in top_level}
+    @model_serializer(mode="wrap", when_used="json")
+    def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
+        item_dict = {k: v for k, v in self if k in self._top_level}
+        props_dict = {k: v for k, v in self if k not in self._top_level | {"properties"}}
+        item_dict["assets"] = {asset.name: NamelessAsset.from_an(asset) for asset in item_dict["assets"]}
 
-    #     return nxt(item_dict | {"properties": props_dict})
+        return nxt(item_dict | {"properties": props_dict})
 
     model_config = ConfigDict(extra="ignore", frozen=True)
 

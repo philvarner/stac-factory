@@ -2,11 +2,10 @@
 
 Features:
 
-- rework properties, move datetime to top-level - extract datetime from Properties
-- add start_datetime and end_datetime to top-level
+- remove all str definitions
 - Extensions - EO, View
 - convert dunders to colon -- handle properiteary extensions wo schema
-- remove all str definitions
+- start_datetime and end_datetime - interval?
 
 Validations:
 
@@ -15,14 +14,19 @@ Validations:
 - validate geometry or bbox
 - antimeridian checking
 
--------------------------------------------------------
+- cli with cyclopts
+  - write schema
+
+- coverage to 100%
+
+- robust developing section
+- pypi
+
+----- Release -------------------------------------------------------
 
 - common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
 - benchmarking
 - hypothesis
-- cli
-  - write schema
-- robust developing section
 
 - add more validation to item model
 
@@ -50,12 +54,10 @@ Validations:
 
 Project:
 
-- pypi
 - rtd
 - codecov
 
 - is lat/long float or decimal? Decimal, and add a configuration for how many points
-- replace ItemProperties with flat structure
 - don't `stac_` things
 
 Collection & Catalog
