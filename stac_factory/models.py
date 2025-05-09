@@ -37,6 +37,9 @@ type JSONValue = (
 type JSONObject = dict[JSONFieldName, JSONValue]
 
 type ShortStr = Annotated[str, StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
+type LongishStr = Annotated[
+    str, StringConstraints(min_length=1, max_length=1000, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()
+]
 type LicenseStr = ShortStr  # todo: make better with literal enums and SPDX
 type BodyStr = Annotated[str, StringConstraints(min_length=1, max_length=10000)]
 
@@ -196,7 +199,7 @@ class Link(Commons):
         title: Title | None = None,
         # TODO: description?
         method: HttpMethod | None = None,
-        headers: dict[str, str | list[str]] | None = None,  # todo: strs
+        headers: dict[ShortStr, LongishStr | list[LongishStr]] | None = None,
         body: BodyStr | JSONObject | None = None,
     ) -> Self:
         return cls.model_validate(
@@ -232,7 +235,7 @@ class Link(Commons):
     method: HttpMethod | None = None
 
     # The HTTP headers to be sent for the request to the target resource.
-    headers: dict[str, str | list[str]] | None = None  # todo: strs
+    headers: dict[ShortStr, LongishStr | list[LongishStr]] | None = None
 
     # The HTTP body to be sent to the target resource.
     body: BodyStr | JSONObject | None = None
