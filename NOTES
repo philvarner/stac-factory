@@ -1,54 +1,3 @@
-"assets": {
-        "red": {
-            "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B04.tif",
-            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-            "title": "Red - 10m",
-            "gsd": 10,
-            "roles": [
-                "data",
-                "reflectance"
-            ]
-        },
-        "green": {
-            "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B03.tif",
-            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-            "title": "Green - 10m",
-            "gsd": 10,
-            "roles": [
-                "data",
-                "reflectance"
-            ]
-        },
-        "blue": {
-            "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/B02.tif",
-            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-            "title": "Blue - 10m",
-            "gsd": 10,
-            "roles": [
-                "data",
-                "reflectance"
-            ]
-        },
-        "visual": {
-            "href": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/TCI.tif",
-            "type": "image/tiff; application=geotiff; profile=cloud-optimized",
-            "title": "True color image",
-            "gsd": 10,
-            "roles": [
-                "visual"
-            ]
-        }
-    },
-
-
-
-> [!TIP]
-> Tip!
-
-some text
-
-> [!NOTE]
-> Note!
 
 class Accuracy(Enum):
     # | Decimal Places | Degrees      | Distance  |
@@ -106,24 +55,3 @@ class ModelWithExtraFields(BaseModel):
         # This prevents extra_fields from being included in serialized output
         # Extra fields are already mixed in with the regular fields
         return None
-
-
-
-
-# class Assets(BaseModel):
-#     assets: list[Asset]
-
-
-#     @model_serializer(mode="wrap", when_used="json")
-#     def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
-#         # todo: exclude name
-#         return nxt({asset.name: asset.model_dump() for asset in self.assets})
-
-#     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
-
-    # @field_validator("assets", mode="before")
-    # @classmethod
-    # def assets_field_validator(cls, v: dict[AssetName, JSONObject] | list[Asset]) -> list[Asset]:
-    #     if isinstance(v, dict):
-    #         return [Asset.named(name=k, asset=v) for k, v in v.items()]
-    #     return v

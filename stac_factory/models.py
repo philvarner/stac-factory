@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from datetime import timezone
-from typing import Annotated, Any, Literal, NamedTuple, Protocol, Self, TypedDict
+from typing import Annotated, Any, Literal, NamedTuple, Self
 
 from annotated_types import Ge, Le
 from pydantic import (
@@ -10,6 +10,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    PositiveFloat,
     SerializationInfo,
     SerializerFunctionWrapHandler,
     Strict,
@@ -158,9 +159,6 @@ type UtcDatetime = Annotated[
 type UtcDatetimeInterval = tuple[UtcDatetime | None, UtcDatetime | None]
 
 
-class ItemProperties(TypedDict): ...
-
-
 type URI = AnyUrl
 
 
@@ -244,7 +242,8 @@ class Link(Commons):
     # image/vnd.stac.geotiff; profile=cloud-optimized.
 
 
-type Role = Annotated[str, StringConstraints(pattern=r"^[-a-zA-Z0-9]+$"), Strict()]
+type AssetRole = Annotated[str, StringConstraints(pattern=r"^[-a-zA-Z0-9]+$"), Strict()]
+type ProviderRole = Annotated[str, StringConstraints(pattern=r"^[-a-zA-Z0-9]+$"), Strict()]
 
 
 class NamelessAsset(BaseModel):
@@ -264,7 +263,7 @@ class NamelessAsset(BaseModel):
     type: MediaType | None = Field(alias="type", default=None)
 
     # The semantic roles of the asset, similar to the use of rel in links.
-    roles: list[Role] | None = None
+    roles: list[AssetRole] | None = None
 
     # "$ref": "common.json"
 
@@ -293,6 +292,17 @@ class Asset(NamelessAsset):
     name: AssetName
 
     @classmethod
+    def create_from_nameless_asset(cls, name: AssetName, asset: NamelessAsset) -> Self:
+        return cls.create(
+            name=name,
+            href=asset.href,
+            title=asset.title,
+            description=asset.description,
+            type=asset.type,
+            roles=asset.roles,
+        )
+
+    @classmethod
     def create(
         cls,
         *,
@@ -301,7 +311,7 @@ class Asset(NamelessAsset):
         title: Title | None = None,
         description: Description | None = None,
         type: MediaType | None = None,
-        roles: list[Role] | None = None,  # ?
+        roles: list[AssetRole] | None = None,  # ?
         **_kwargs: dict[str, Any],
     ) -> Self:
         return cls.model_validate(
@@ -327,26 +337,92 @@ class Asset(NamelessAsset):
     model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
-class ItemExtension(Protocol):
+class Provider(BaseModel):
+    # REQUIRED. The name of the organization or the individual.
+    name: ShortStr
+
+    # Multi-line description to add further provider information such as processing details for processors and
+    # producers, hosting details for hosts or basic contact information. CommonMark 0.29 syntax MAY be used for
+    # rich text representation.
+    description: Description
+
+    # Roles of the provider. Any of licensor, producer, processor or host.
+    roles: list[ProviderRole]
+    # role validation
+    # The provider's role(s) can be one or more of the following elements:
+    # licensor: The organization that is licensing the dataset under the license specified in the Collection's license
+    #   field.
+    # producer: The producer of the data is the provider that initially captured and processed the source data,
+    #   e.g. ESA for Sentinel-2 data.
+    # processor: A processor is any provider who processed data to a derived product.
+    # host: The host is the actual provider offering the data on their storage. There should be no more than one host,
+    #   specified as the last element of the provider list.
+
+    # Homepage on which the provider describes the dataset and publishes contact information.
+    url: URI
+
+
+class Band(BaseModel):
+    # The name of the band (e.g., "B01", "B8", "band2", "red"), which should be unique across all bands defined in the
+    #   list of bands. This is typically the name the data provider uses for the band.
+    name: ShortStr
+    # string	Description to fully explain the band. CommonMark 0.29 syntax MAY be used for rich text representation.
+    description: Description
+
+
+class ItemExtension(BaseModel):
+    id: StacExtensionIdentifier
+
     def apply(self, item: "Item") -> "Item":
         return item
 
 
-class Item(BaseModel):  # , Generic[Geom, Props]):
+class Item(BaseModel):
+    model_config = ConfigDict(extra="ignore", frozen=True)
+
+    _top_level: frozenset[str] = frozenset(
+        {
+            "type",
+            "stac_version",
+            "stac_extensions",
+            "id",
+            "geometry",
+            "bbox",
+            "links",
+            "assets",
+            "collection",
+        }
+    )
+
     @classmethod
     def create(
         cls,
-        *extensions: ItemExtension,
+        *,
+        extensions: list[ItemExtension],
         stac_extensions: list[StacExtensionIdentifier],
         id: ItemIdentifier,
         geometry: Polygon | MultiPolygon,
         bbox: BBox2d | BBox3d,
         links: list[Link],
         assets: list[Asset],
-        properties: ItemProperties,
         collection: CollectionIdentifier | None,
-        datetime: UtcDatetime,
-        # **properties: Unpack[ItemProperties],
+        datetime: UtcDatetime | None,
+        title: Title | None = None,
+        description: Description | None = None,
+        keywords: list[ShortStr] | None = None,
+        roles: list[ShortStr] | None = None,
+        start_datetime: UtcDatetime | None = None,
+        end_datetime: UtcDatetime | None = None,
+        created: UtcDatetime | None = None,
+        updated: UtcDatetime | None = None,
+        license: LicenseStr | None = None,
+        providers: list[Provider] | None = None,
+        platform: ShortStr | None = None,
+        instruments: list[ShortStr] | None = None,
+        constellation: ShortStr | None = None,
+        mission: ShortStr | None = None,
+        gsd: PositiveFloat | None = None,
+        bands: list[Band] | None = None,
     ) -> "Item":
         x = cls.model_validate(
             {
@@ -356,11 +432,26 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
                 "id": id,
                 "geometry": geometry,
                 "bbox": bbox,
-                "properties": properties,
                 "links": links,
                 "assets": assets,
                 "collection": collection,
                 "datetime": datetime,
+                "title": title,
+                "description": description,
+                "keywords": keywords,
+                "roles": roles,
+                "start_datetime": start_datetime,
+                "end_datetime": end_datetime,
+                "created": created,
+                "updated": updated,
+                "license": license,
+                "providers": providers,
+                "platform": platform,
+                "instruments": instruments,
+                "constellation": constellation,
+                "mission": mission,
+                "gsd": gsd,
+                "bands": bands,
             },
         )
 
@@ -368,6 +459,14 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
             x = extension.apply(x)
 
         return x
+
+    @model_serializer(mode="wrap", when_used="json")
+    def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
+        item_dict = {k: v for k, v in self if k in self._top_level}
+        props_dict = {k: v for k, v in self if k not in self._top_level | {"properties"}}
+        item_dict["assets"] = {asset.name: NamelessAsset.from_an(asset) for asset in item_dict["assets"]}
+
+        return nxt(item_dict | {"properties": props_dict})
 
     # REQUIRED. Type of the GeoJSON Object. MUST be set to Feature.
     type: Literal["Feature"]
@@ -436,7 +535,7 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
             return v
         if isinstance(v, dict):
             for asset_name, asset in v.items():
-                asset.name = asset_name
+                asset["name"] = asset_name
             return list(v.values())
         return v
 
@@ -454,15 +553,11 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
 
     # -----------
 
-    properties: ItemProperties
-
     # REQUIRED. The searchable date and time of the assets, which must be in UTC.
     # It is formatted according to RFC 3339, section 5.6. null is allowed, but
     # requires start_datetime and end_datetime from common metadata to be set.
     # todo: consider collapsing into single and interval?
     datetime: UtcDatetime | None
-    start_datetime: UtcDatetime | None = None
-    end_datetime: UtcDatetime | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -478,73 +573,67 @@ class Item(BaseModel):  # , Generic[Geom, Props]):
     #                     "start_datetime",
     #                     "end_datetime"
 
-    _top_level: frozenset[str] = frozenset(
-        {
-            "type",
-            "stac_version",
-            "stac_extensions",
-            "id",
-            "geometry",
-            "bbox",
-            "links",
-            "assets",
-            "collection",
-        }
-    )
+    #############################################################################################
+    ## Commons https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md #
+    #############################################################################################
 
-    @model_serializer(mode="wrap", when_used="json")
-    def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
-        item_dict = {k: v for k, v in self if k in self._top_level}
-        props_dict = {k: v for k, v in self if k not in self._top_level | {"properties"}}
-        item_dict["assets"] = {asset.name: NamelessAsset.from_an(asset) for asset in item_dict["assets"]}
-
-        return nxt(item_dict | {"properties": props_dict})
-
-    model_config = ConfigDict(extra="ignore", frozen=True)
-
-
-# https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
-class Common(BaseModel): ...
-
-
-class Basics(Common):
     # A human readable title describing the STAC entity.
-    title: Title
+    title: Title | None = None
 
     # Detailed multi-line description to fully explain the STAC entity. CommonMark 0.29 syntax MAY be used for rich
     # text representation.
-    description: Description
+    description: Description | None = None
 
     # List of keywords describing the STAC entity.
-    keywords: list[ShortStr]
+    keywords: list[ShortStr] | None = None
 
     # The semantic roles of the entity, e.g. for assets, links, providers, bands, etc.
-    roles: list[ShortStr]
+    roles: list[ShortStr] | None = None
 
+    # The first or start date and time for the resource, in UTC. It is formatted as date-time according to RFC 3339
+    start_datetime: UtcDatetime | None = None
 
-class DateAndTime(Common):
+    # The last or end date and time for the resource, in UTC. It is formatted as date-time according to RFC 3339
+    end_datetime: UtcDatetime | None = None
+
     # Creation date and time of the corresponding STAC entity or Asset (see below), in UTC.
-    created: UtcDatetime
+    created: UtcDatetime | None = None
 
     # Date and time the corresponding STAC entity or Asset (see below) was updated last, in UTC.
-    updated: UtcDatetime
+    updated: UtcDatetime | None = None
 
-    # created and updated have different meaning depending on where they are used. If those fields are available in
-    # a Collection, in a Catalog (both top-level), or in a Item (in the properties), the fields refer the metadata
-    # (e.g., when the STAC metadata was created). Having those fields in the Assets or Links, they refer to the actual
-    # data linked to (e.g., when the asset was created).
+    # License(s) of the data as SPDX License identifier, SPDX License expression, or "other" (see below).
+    # various and proprietary are deprecated.
+    # https://spdx.org/licenses/ identifier
+    # https://spdx.github.io/spdx-spec/v2.3/SPDX-license-expressions/
+    license: LicenseStr | None = None
 
-    # The first or start date and time for the resource, in UTC. It is formatted as date-time according to RFC 3339,
-    # section 5.6.
-    start_datetime: UtcDatetime
+    # Link relations valiations
+    # commons: license The license URL(s) for the resource SHOULD be specified if the license field is
+    # not a SPDX license identifier.
 
-    # The last or end date and time for the resource, in UTC. It is formatted as date-time according to RFC 3339,
-    # section 5.6.
-    end_datetime: UtcDatetime
+    # A list of providers, which may include all organizations capturing or processing the data or the hosting provider.
+    # Providers should be listed in chronological order with the most recent provider being the last element of the list
+    providers: list[Provider] | None = None
 
+    # Unique name of the specific platform to which the instrument is attached. e.g., landsat-8
+    # lower case
+    platform: ShortStr | None = None
 
-class SomethingElse(Common):
-    # License(s) of the data as SPDX License identifier, SPDX License expression, or other (see below).
-    license: LicenseStr
+    # Name of instrument or sensor used (e.g., MODIS, ASTER, OLI, Canon F-1).
+    # modis,
+    instruments: list[ShortStr] | None = None  # todo: tighter and lc
 
-    # to be continued...
+    # Name of the constellation to which the platform belongs., e.g, sentinel-2
+    constellation: ShortStr | None = None  # todo: tighter and lc
+
+    # Name of the mission for which data is collected.
+    mission: ShortStr | None = None  # todo: tighter and lc
+
+    # Ground Sample Distance at the sensor, in meters (m), must be greater than 0.
+    gsd: PositiveFloat | None = None  # maybe tighter? precision, can't be larger than the earth
+
+    bands: list[Band] | None = Field(default_factory=list)
+
+    # Statistics of all the values.
+    # statistics:	Statistics  TODO

@@ -9,7 +9,7 @@ import pytest
 from pydantic import ValidationError
 
 from stac_factory.constants import AssetRole, HttpMethod, LinkRelation, MediaType
-from stac_factory.models import Asset, Item, ItemProperties, Link
+from stac_factory.models import Asset, Item, Link
 
 
 def test_item_with_bbox3d() -> None:
@@ -386,6 +386,20 @@ def test_item_sentinel_2() -> None:
             "datetime": "2025-04-22T09:19:42.556000Z",
             "end_datetime": None,
             "start_datetime": None,
+            "bands": [],
+            "constellation": None,
+            "created": None,
+            "description": None,
+            "gsd": None,
+            "instruments": None,
+            "keywords": None,
+            "license": None,
+            "mission": None,
+            "platform": None,
+            "providers": None,
+            "roles": None,
+            "title": None,
+            "updated": None,
         },
         "stac_extensions": [
             "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
@@ -412,6 +426,7 @@ def test_item_sentinel_2_multipolygon() -> None:
 
 def test_item_create_minimal() -> None:
     Item.create(
+        extensions=[],
         stac_extensions=[],
         id="minimal-item",
         geometry={
@@ -421,7 +436,6 @@ def test_item_create_minimal() -> None:
         bbox=[100, 0, 101, 1],
         assets=[],
         links=[],
-        properties=ItemProperties(),
         datetime="2021-01-01T00:00:00Z",
         collection=None,
     )
@@ -429,6 +443,7 @@ def test_item_create_minimal() -> None:
 
 def test_item_create_minimal_mp() -> None:
     Item.create(
+        extensions=[],
         stac_extensions=[],
         id="minimal-item",
         geometry={
@@ -458,7 +473,6 @@ def test_item_create_minimal_mp() -> None:
         bbox=[100, 0, 101, 1],
         assets=[],
         links=[],
-        properties=ItemProperties(),
         datetime="2021-01-01T00:00:00Z",
         collection=None,
     )
@@ -466,6 +480,7 @@ def test_item_create_minimal_mp() -> None:
 
 def test_item_create_typical() -> None:
     item = Item.create(
+        extensions=[],
         stac_extensions=["https://stac-extensions.github.io/eo/v2.0.0/schema.json"],
         id="normal-item-1",
         geometry={
@@ -494,7 +509,6 @@ def test_item_create_typical() -> None:
                 body=None,
             ),
         ],
-        properties=ItemProperties(),
         datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
         collection=None,
     )
@@ -510,9 +524,23 @@ def test_item_create_typical() -> None:
         },
         "bbox": [100.0, 0.0, 101.0, 1.0],
         "properties": {
+            "bands": None,
+            "constellation": None,
+            "created": None,
             "datetime": "2021-01-01T00:00:00Z",
+            "description": None,
             "end_datetime": None,
+            "gsd": None,
+            "instruments": None,
+            "keywords": None,
+            "license": None,
+            "mission": None,
+            "platform": None,
+            "providers": None,
+            "roles": None,
             "start_datetime": None,
+            "title": None,
+            "updated": None,
         },
         "links": [
             {

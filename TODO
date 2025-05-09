@@ -1,13 +1,9 @@
 # Todo
 
-Features:
-
 - remove all str definitions
-- Extensions - EO, View
-- convert dunders to colon -- handle properiteary extensions wo schema
-- start_datetime and end_datetime - interval?
-
-Validations:
+- Extensions
+- EO
+- View
 
 - start_datetime and end_datetime -- dt within sdt edt, null rules
 - test geometry and bbox variations
@@ -24,7 +20,21 @@ Validations:
 
 ----- Release -------------------------------------------------------
 
-- common metadata https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md
+- CM Statistics
+- convert dunders to colon -- handle properiteary extensions wo schema
+
+Sentinel-2 extensions
+"https://stac-extensions.github.io/eo/v1.1.0/schema.json",
+"https://stac-extensions.github.io/file/v2.1.0/schema.json",
+"https://stac-extensions.github.io/grid/v1.1.0/schema.json",
+"https://stac-extensions.github.io/mgrs/v1.0.0/schema.json",
+"https://stac-extensions.github.io/processing/v1.1.0/schema.json",
+"https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+"https://stac-extensions.github.io/raster/v1.1.0/schema.json",
+"https://stac-extensions.github.io/sentinel-2/v1.0.0/schema.json",
+"https://stac-extensions.github.io/storage/v1.0.0/schema.json",
+"https://stac-extensions.github.io/view/v1.0.0/schema.json"
+
 - benchmarking
 - hypothesis
 
@@ -33,9 +43,6 @@ Validations:
 - asset thumbnail png, jpeg, jpg, or webp
 
 - allow use of PySTAC Extensions + Augments
-- Extensions https://github.com/radiantearth/stac-spec/blob/master/extensions/README.md
-  - EO
-  - View
 - rewrite stactools
 - to_pystac methods
 
