@@ -538,7 +538,7 @@ class Item(BaseModel):
 
     @field_validator("assets", mode="before")
     @classmethod
-    def transform_assets_dict_to_list(cls, v: list[Asset] | dict[str, Asset]) -> list[Asset]:
+    def transform_assets_dict_to_list(cls, v: list[dict[str, Any]] | dict[str, Any]) -> list[dict[str, Any]]:
         if isinstance(v, list):
             return v
         if isinstance(v, dict):
@@ -652,9 +652,11 @@ class EOExtension(ItemExtension):
     cloud_cover: Percentage | None = Field(alias="eo:cloud_cover", default=None)
     snow_cover: Percentage | None = Field(alias="eo:snow_cover", default=None)
 
+
 type ZeroTo90 = Annotated[float, Ge(0.0), Le(90.0)]
 type ZeroTo360 = Annotated[float, Ge(0.0), Le(360.0)]
 type Negative90To90 = Annotated[float, Ge(-90.0), Le(90.0)]
+
 
 class ViewExtension(ItemExtension):
     id: StacExtensionIdentifier = "https://stac-extensions.github.io/view/v1.0.0/schema.json"
