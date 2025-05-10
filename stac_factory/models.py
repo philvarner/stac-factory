@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from datetime import timezone
-from typing import Annotated, Any, Literal, NamedTuple, Self, override
+from typing import Annotated, Any, Literal, NamedTuple, Self
 
 from annotated_types import Ge, Le
 from pydantic import (
@@ -11,7 +11,6 @@ from pydantic import (
     ConfigDict,
     Field,
     PositiveFloat,
-    PrivateAttr,
     SerializationInfo,
     SerializerFunctionWrapHandler,
     Strict,
@@ -650,5 +649,32 @@ class Item(BaseModel):
 
 class EOExtension(ItemExtension):
     id: StacExtensionIdentifier = "https://stac-extensions.github.io/eo/v2.0.0/schema.json"
-    eo__cloud_cover: Percentage | None = Field(alias="eo:cloud_cover", default=None)
-    eo__snow_cover: Percentage | None = Field(alias="eo:snow_cover", default=None)
+    cloud_cover: Percentage | None = Field(alias="eo:cloud_cover", default=None)
+    snow_cover: Percentage | None = Field(alias="eo:snow_cover", default=None)
+
+type ZeroTo90 = Annotated[float, Ge(0.0), Le(90.0)]
+type ZeroTo360 = Annotated[float, Ge(0.0), Le(360.0)]
+type Negative90To90 = Annotated[float, Ge(-90.0), Le(90.0)]
+
+class ViewExtension(ItemExtension):
+    id: StacExtensionIdentifier = "https://stac-extensions.github.io/view/v1.0.0/schema.json"
+
+    # The angle from the sensor between nadir (straight down) and the scene center. Measured in degrees (0-90).
+    off_nadir: ZeroTo90 | None = Field(alias="view:off_nadir", default=None)
+
+    # The incidence angle is the angle between the vertical (normal) to the intercepting surface and the line of sight
+    # back to the satellite at the scene center. Measured in degrees (0-90).
+    incidence_angle: ZeroTo90 | None = Field(alias="view:incidence_angle", default=None)
+
+    # Viewing azimuth angle. The angle measured from the sub-satellite point (point on the ground below the platform)
+    # between the scene center and true north. Measured clockwise from north in degrees (0-360).
+    azimuth: ZeroTo360 | None = Field(alias="view:azimuth", default=None)
+
+    # Sun azimuth angle. From the scene center point on the ground, this is the angle between truth north and the sun.
+    # Measured clockwise in degrees (0-360).
+    sun_azimuth: ZeroTo360 | None = Field(alias="view:sun_azimuth", default=None)
+
+    # Sun elevation angle. The angle from the tangent of the scene center point to the sun. Measured from the horizon
+    # in degrees (-90-90). Negative values indicate the sun is below the horizon, e.g. sun elevation of -10° means the
+    # data was captured during nautical twilight.
+    sun_elevation: Negative90To90 | None = Field(alias="view:sun_elevation", default=None)

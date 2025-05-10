@@ -330,8 +330,7 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
-                                "description": None,
-
+                "description": None,
                 "headers": None,
                 "href": "s3://e84-earth-search-sentinel-data/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/S2B_T38XNF_20250422T091553_L2A.json",
                 "method": None,
@@ -341,8 +340,7 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
-                                "description": None,
-
+                "description": None,
                 "headers": None,
                 "href": "s3://sentinel-s2-l2a/tiles/38/X/NF/2025/4/22/0/metadata.xml",
                 "method": None,
@@ -352,8 +350,7 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
-                                "description": None,
-
+                "description": None,
                 "headers": None,
                 "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a",
                 "method": None,
@@ -363,8 +360,7 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
-                                "description": None,
-
+                "description": None,
                 "headers": None,
                 "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a",
                 "method": None,
@@ -374,8 +370,7 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
-                                "description": None,
-
+                "description": None,
                 "headers": None,
                 "href": "https://earth-search.aws.element84.com/v1",
                 "method": None,
@@ -385,8 +380,7 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
-                                "description": None,
-
+                "description": None,
                 "headers": None,
                 "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a/items/S2B_T38XNF_20250422T091553_L2A/thumbnail",
                 "method": None,
@@ -515,12 +509,10 @@ def test_item_create_typical() -> None:
                 type=MediaType.JSON,
                 title="an item",
                 method=HttpMethod.GET,
-                headers=None,
-                body=None,
             ),
         ],
         datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
-        extensions=[EOExtension(eo__cloud_cover=3.14, eo__snow_cover=2.7)],
+        extensions=[EOExtension(cloud_cover=3.14, snow_cover=2.7)],
     )
 
     assert item.model_dump(mode="json") == {
