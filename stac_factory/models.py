@@ -641,7 +641,7 @@ class Item(BaseModel):
     # Ground Sample Distance at the sensor, in meters (m), must be greater than 0.
     gsd: PositiveFloat | None = None  # maybe tighter? precision, can't be larger than the earth
 
-    bands: list[Band] | None = Field(default_factory=list)
+    bands: list[Band] | None = None
 
     # Statistics of all the values.
     # statistics:	Statistics  TODO

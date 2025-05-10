@@ -393,7 +393,7 @@ def test_item_sentinel_2() -> None:
             "datetime": "2025-04-22T09:19:42.556000Z",
             "end_datetime": None,
             "start_datetime": None,
-            "bands": [],
+            "bands": None,
             "constellation": None,
             "created": None,
             "description": None,
