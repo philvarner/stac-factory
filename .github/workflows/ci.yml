@@ -33,7 +33,7 @@ jobs:
       - name: Run pre-commit
         run: uv run pre-commit run --all-files
       - name: Run pytest
-        run: uv run pytest -Werror -s --cov stac_factory --cov-report term-missing --cov-fail-under 90
+        run: uv run pytest -Werror -s --cov stac_factory --cov-report term-missing --cov-fail-under 99
       - name: Run coverage
         run: uv run coverage xml
       # - uses: codecov/codecov-action@v5

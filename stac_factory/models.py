@@ -1,4 +1,3 @@
-from collections.abc import Mapping
 from datetime import timezone
 from typing import Annotated, Any, Literal, NamedTuple, Self
 
@@ -301,17 +300,6 @@ class Asset(NamelessAsset):
     name: AssetName
 
     @classmethod
-    def create_from_nameless_asset(cls, name: AssetName, asset: NamelessAsset) -> Self:
-        return cls.create(
-            name=name,
-            href=asset.href,
-            title=asset.title,
-            description=asset.description,
-            type=asset.type,
-            roles=asset.roles,
-        )
-
-    @classmethod
     def create(
         cls,
         *,
@@ -333,17 +321,6 @@ class Asset(NamelessAsset):
                 "roles": roles,
             },
         )
-
-    @classmethod
-    def named(
-        cls,
-        *,
-        name: AssetName,
-        asset: Mapping[str, Any],
-    ) -> Self:
-        return cls.create(name=name, **asset)
-
-    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class Provider(BaseModel):
