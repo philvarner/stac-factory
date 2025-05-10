@@ -11,7 +11,7 @@
 
 The purpose of stac-factory is to provide library support for creating and validating **correct** STAC Items.
 While many of the constraints of STAC are expressible in the JSON Schemas of the STAC specification, there are
-many requirements and best practices that are not formally defined, and this library attempts to also enforce those
+significant requirements and best practices that are not formally defined, and this library attempts to also enforce those
 when working with STAC Items.
 
 There are two primary use cases for stac-factory:
@@ -19,10 +19,16 @@ There are two primary use cases for stac-factory:
 1. **Construct** correct STAC Items from metadata
 2. **Validate** existing STAC Items from JSON
 
+A validated Item is constructed as a single expression using the `Item.create` static method. This is in contrast to
+how PySTAC requires an initial create of an Item object, which may or may not be valid, and then imperative modification
+to that Item, possibly through Extension classes. With stac-factory, the Item is created in one expression, and is either
+valid or throws an exception.
+
 Reading and writing arbitrary STAC JSON Items is not an objective of this library. If you need to do that, you're
 better off using a library like PySTAC, which intentionally has much looser constraints on its object model.
 
-Additionally, the tightly-typed object model helps to surface as many type errors via mypy before the pydantic dynamic validation, so you can catch issue before they happen at runtime.
+Additionally, the tightly-typed object model helps to surface as many type errors via mypy before the pydantic dynamic
+validation, so you can catch issue before they happen at runtime.
 
 To quote Mike Admunsen, "your data model is not your object model is not your resource model is not your message model".
 STAC is defined as an ontology (the names of things and how they relate) coupled to a representation format (JSON).
@@ -71,38 +77,39 @@ Borrows heavily from:
 Here's an example of a good one:
 
 ```python
-Item.create(
-    stac_extensions=["https://stac-extensions.github.io/eo/v2.0.0/schema.json],
-    id="minimal-item",
-    geometry={
-      "type": "Polygon",
-      "coordinates": [[[100.0, 0.0], [101.0, 0.0],
-      [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
-    },
-    bbox=[100, 0, 101, 1],
-    assets=[
-      Asset.create(
-        name="asset1",
-        href="https://api.example.com/x.json",
-        title="an item",
-        description="an item description",
-        type=MediaType.JSON,
-        roles=[AssetRole.data],
-      )
-    ],
-    links=[
-        Link.create(
-            href="https://api.example.com/x.json",
-            rel=LinkRelation.canonical,
-            type=MediaType.JSON,
-            title="an item",
-            method=HttpMethod.GET,
-            headers=None,
-            body=None,
-        )
-    ],
-    datetime="2021-01-01T00:00:00,
-    eo__cloud_cover="3.14",
+item = Item.create(
+        id="item-1",
+        collection=None,
+        geometry={
+            "type": "Polygon",
+            "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
+        },
+        bbox=[100, 0, 101, 1],
+        assets=[
+            Asset.create(
+                name="asset1",
+                href="https://api.example.com/x.json",
+                title="an item",
+                description="an item description",
+                type=MediaType.JSON,
+                roles=[AssetRole.data],
+            ),
+        ],
+        links=[
+            Link.create(
+                href="https://api.example.com/x.json",
+                rel=LinkRelation.canonical,
+                type=MediaType.JSON,
+                title="an item",
+                method=HttpMethod.GET,
+            ),
+        ],
+        datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
+        extensions=[
+          EOExtension(cloud_cover=3.14, snow_cover=2.7)
+          ViewExtension(off_nadir=8.2, incidence_angle=12.1, azimuth=23.2, sun_azimuth=4.2, sun_elevation=2.2)
+        ],
+    )
 )
 ```
 

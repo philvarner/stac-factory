@@ -1,6 +1,6 @@
 # Todo
 
-- View Extension
+- View Extension - test
 - Extensions - populate from deserialized fields -- pre-register? sentinel-2 missing extensions
 - start_datetime and end_datetime -- dt within sdt edt, null rules
 - test geometry and bbox variations
