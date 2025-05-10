@@ -9,7 +9,7 @@ import pytest
 from pydantic import ValidationError
 
 from stac_factory.constants import AssetRole, HttpMethod, LinkRelation, MediaType
-from stac_factory.models import Asset, Item, Link
+from stac_factory.models import Asset, EOExtension, Item, Link
 
 
 def test_item_with_bbox3d() -> None:
@@ -320,6 +320,7 @@ def test_item_sentinel_2() -> None:
         "links": [
             {
                 "body": None,
+                "description": None,
                 "headers": None,
                 "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a/items/S2B_T38XNF_20250422T091553_L2A",
                 "method": None,
@@ -329,6 +330,8 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
+                                "description": None,
+
                 "headers": None,
                 "href": "s3://e84-earth-search-sentinel-data/sentinel-2-c1-l2a/38/X/NF/2025/4/S2B_T38XNF_20250422T091553_L2A/S2B_T38XNF_20250422T091553_L2A.json",
                 "method": None,
@@ -338,6 +341,8 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
+                                "description": None,
+
                 "headers": None,
                 "href": "s3://sentinel-s2-l2a/tiles/38/X/NF/2025/4/22/0/metadata.xml",
                 "method": None,
@@ -347,6 +352,8 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
+                                "description": None,
+
                 "headers": None,
                 "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a",
                 "method": None,
@@ -356,6 +363,8 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
+                                "description": None,
+
                 "headers": None,
                 "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a",
                 "method": None,
@@ -365,6 +374,8 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
+                                "description": None,
+
                 "headers": None,
                 "href": "https://earth-search.aws.element84.com/v1",
                 "method": None,
@@ -374,6 +385,8 @@ def test_item_sentinel_2() -> None:
             },
             {
                 "body": None,
+                                "description": None,
+
                 "headers": None,
                 "href": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a/items/S2B_T38XNF_20250422T091553_L2A/thumbnail",
                 "method": None,
@@ -427,7 +440,6 @@ def test_item_sentinel_2_multipolygon() -> None:
 def test_item_create_minimal() -> None:
     Item.create(
         extensions=[],
-        stac_extensions=[],
         id="minimal-item",
         geometry={
             "type": "Polygon",
@@ -444,7 +456,6 @@ def test_item_create_minimal() -> None:
 def test_item_create_minimal_mp() -> None:
     Item.create(
         extensions=[],
-        stac_extensions=[],
         id="minimal-item",
         geometry={
             "type": "MultiPolygon",
@@ -480,9 +491,8 @@ def test_item_create_minimal_mp() -> None:
 
 def test_item_create_typical() -> None:
     item = Item.create(
-        extensions=[],
-        stac_extensions=["https://stac-extensions.github.io/eo/v2.0.0/schema.json"],
         id="normal-item-1",
+        collection=None,
         geometry={
             "type": "Polygon",
             "coordinates": [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
@@ -510,7 +520,7 @@ def test_item_create_typical() -> None:
             ),
         ],
         datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
-        collection=None,
+        extensions=[EOExtension(eo__cloud_cover=3.14, eo__snow_cover=2.7)],
     )
 
     assert item.model_dump(mode="json") == {
@@ -548,6 +558,7 @@ def test_item_create_typical() -> None:
                 "rel": "canonical",
                 "type": "application/json",
                 "title": "an item",
+                "description": None,
                 "method": "get",
                 "headers": None,
                 "body": None,

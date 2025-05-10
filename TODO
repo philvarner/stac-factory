@@ -1,20 +1,14 @@
 # Todo
 
-- remove all str definitions
-- Extensions
-- EO
-- View
-
+- View Extension
 - start_datetime and end_datetime -- dt within sdt edt, null rules
 - test geometry and bbox variations
 - validate geometry or bbox
 - antimeridian checking
-
+- difference between null and undefined/"don't include"
 - cli with cyclopts
   - write schema
-
 - coverage to 100%
-
 - robust developing section
 - pypi
 

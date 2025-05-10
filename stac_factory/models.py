@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 from datetime import timezone
-from typing import Annotated, Any, Literal, NamedTuple, Self
+from typing import Annotated, Any, Literal, NamedTuple, Self, override
 
 from annotated_types import Ge, Le
 from pydantic import (
@@ -11,6 +11,7 @@ from pydantic import (
     ConfigDict,
     Field,
     PositiveFloat,
+    PrivateAttr,
     SerializationInfo,
     SerializerFunctionWrapHandler,
     Strict,
@@ -52,6 +53,8 @@ type StacExtensionIdentifier = Annotated[
     StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.:/a-zA-Z0-9]+$"),  # TODO: URI?
 ]
 
+
+type Percentage = Annotated[float, Ge(0.0), Le(100)]
 
 type Lat = Annotated[float, Ge(-90.0), Le(90)]
 type Lon = Annotated[float, Ge(-180.0), Le(180)]
@@ -197,7 +200,7 @@ class Link(Commons):
         rel: Rel,
         type: MediaType | None = None,
         title: Title | None = None,
-        # TODO: description?
+        description: Description | None = None,
         method: HttpMethod | None = None,
         headers: dict[ShortStr, LongishStr | list[LongishStr]] | None = None,
         body: BodyStr | JSONObject | None = None,
@@ -208,6 +211,7 @@ class Link(Commons):
                 "rel": rel,
                 "type": type,
                 "title": title,
+                "description": description,
                 "method": method,
                 "headers": headers,
                 "body": body,
@@ -230,6 +234,9 @@ class Link(Commons):
 
     # A human readable title to be used in rendered displays of the link.
     title: Title | None = None
+
+    # Description
+    description: Description | None = None
 
     # The HTTP method that shall be used for the request to the target resource, in uppercase. GET by default
     method: HttpMethod | None = None
@@ -376,9 +383,6 @@ class Band(BaseModel):
 class ItemExtension(BaseModel):
     id: StacExtensionIdentifier
 
-    def apply(self, item: "Item") -> "Item":
-        return item
-
 
 class Item(BaseModel):
     model_config = ConfigDict(extra="ignore", frozen=True)
@@ -387,7 +391,6 @@ class Item(BaseModel):
         {
             "type",
             "stac_version",
-            "stac_extensions",
             "id",
             "geometry",
             "bbox",
@@ -397,12 +400,13 @@ class Item(BaseModel):
         }
     )
 
+    _exclude: frozenset[str] = frozenset({"stac_extensions", "extensions"})
+
     @classmethod
     def create(
         cls,
         *,
         extensions: list[ItemExtension],
-        stac_extensions: list[StacExtensionIdentifier],
         id: ItemIdentifier,
         geometry: Polygon | MultiPolygon,
         bbox: BBox2d | BBox3d,
@@ -427,11 +431,11 @@ class Item(BaseModel):
         gsd: PositiveFloat | None = None,
         bands: list[Band] | None = None,
     ) -> "Item":
-        x = cls.model_validate(
+        return cls.model_validate(
             {
                 "type": "Feature",
                 "stac_version": "1.1.0",
-                "stac_extensions": stac_extensions,
+                "stac_extensions": [],
                 "id": id,
                 "geometry": geometry,
                 "bbox": bbox,
@@ -455,21 +459,23 @@ class Item(BaseModel):
                 "mission": mission,
                 "gsd": gsd,
                 "bands": bands,
+                "extensions": extensions,
             },
         )
 
-        for extension in extensions:
-            x = extension.apply(x)
-
-        return x
-
     @model_serializer(mode="wrap", when_used="json")
     def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
-        item_dict = {k: v for k, v in self if k in self._top_level}
-        props_dict = {k: v for k, v in self if k not in self._top_level | {"properties"}}
-        item_dict["assets"] = {asset.name: NamelessAsset.from_an(asset) for asset in item_dict["assets"]}
+        item = {k: v for k, v in self if k in self._top_level}
+        if self.stac_extensions:
+            item |= {"stac_extensions": self.stac_extensions}
+        else:
+            item |= {"stac_extensions": [x.id for x in self.extensions]}
+        item["assets"] = {asset.name: NamelessAsset.from_an(asset) for asset in item["assets"]}
+        item |= {"properties": {k: v for k, v in self if k not in self._top_level and k not in self._exclude}}
 
-        return nxt(item_dict | {"properties": props_dict})
+        return nxt(item)
+
+    extensions: list[ItemExtension] = Field(default_factory=list)
 
     # REQUIRED. Type of the GeoJSON Object. MUST be set to Feature.
     type: Literal["Feature"]
@@ -640,3 +646,9 @@ class Item(BaseModel):
 
     # Statistics of all the values.
     # statistics:	Statistics  TODO
+
+
+class EOExtension(ItemExtension):
+    id: StacExtensionIdentifier = "https://stac-extensions.github.io/eo/v2.0.0/schema.json"
+    eo__cloud_cover: Percentage | None = Field(alias="eo:cloud_cover", default=None)
+    eo__snow_cover: Percentage | None = Field(alias="eo:snow_cover", default=None)
