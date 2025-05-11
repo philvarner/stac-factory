@@ -3,7 +3,6 @@
     "stac_version": "1.1.0",
     "id": "S2B_T38XNF_20250422T091553_L2A",
     "properties": {
-        "datetime": "2025-04-22T09:19:42.556000Z"
     },
     "geometry": {
         "type": "Polygon",
@@ -34,21 +33,11 @@
     },
     "bbox": [
         47.014448,
-        72.738194,
+        72.985776,
         48.35946,
-        72.985776
+        72.738194
     ],
    "stac_extensions": [
-        "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
-        "https://stac-extensions.github.io/file/v2.1.0/schema.json",
-        "https://stac-extensions.github.io/grid/v1.1.0/schema.json",
-        "https://stac-extensions.github.io/mgrs/v1.0.0/schema.json",
-        "https://stac-extensions.github.io/processing/v1.1.0/schema.json",
-        "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
-        "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
-        "https://stac-extensions.github.io/sentinel-2/v1.0.0/schema.json",
-        "https://stac-extensions.github.io/storage/v1.0.0/schema.json",
-        "https://stac-extensions.github.io/view/v1.0.0/schema.json"
     ],
     "collection": "sentinel-2-c1-l2a"
 }

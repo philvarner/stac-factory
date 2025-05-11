@@ -7,7 +7,9 @@ authors = [{ name = "Phil Varner", email = "philvarner@gmail.com" }]
 maintainers = [{ name = "Phil Varner", email = "philvarner@gmail.com" }]
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
+
 dependencies = [
+    "cyclopts>=3.16.0",
     "pydantic>=2.11.3",
 ]
 
@@ -28,6 +30,10 @@ dev = [
     # "pyrfc3339>=1.1",
     # "types-pyRFC3339>=1.1.1",
 ]
+
+[project.scripts]
+stac-factory = "stac_factory.cli.__main__:app"
+
 
 [tool.pytest.ini_options]
 addopts = "-sv --cov stac_factory --cov-report html --cov-report term --cov-fail-under 99"
@@ -62,6 +68,7 @@ exclude = []
 [tool.ruff.lint.per-file-ignores]
 '__init__.py' = ['E402']
 '**/tests/**/*' = ['T201', 'S101']
+'stac_factory/cli/**' = ['T201']
 
 [tool.ruff.lint.isort]
 lines-between-types = 1

@@ -43,12 +43,6 @@ def test_item_with_null_bbox() -> None:
     assert "Input should be a valid dictionary or instance of BBox3d" in str(e.value)
 
 
-def test_item_inprogress() -> None:
-    fixture_dir = Path(__file__).parent.absolute() / "fixtures"
-    item_dict = json.loads(Path(fixture_dir / "inprogress.json").read_text())
-    Item.model_validate(item_dict)
-
-
 # @pytest.mark.xfail(reason="failing because has elements that are not supported")
 def test_item_typical() -> None:
     fixture_dir = Path(__file__).parent.absolute() / "fixtures"

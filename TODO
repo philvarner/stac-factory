@@ -6,8 +6,6 @@
 - validate geometry or bbox
 - antimeridian checking
 - difference between null and undefined/"don't include"
-- cli with cyclopts
-  - write schema
 - coverage to 100%
 - robust developing section
 - pypi
