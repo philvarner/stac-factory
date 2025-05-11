@@ -10,6 +10,7 @@ from pydantic import (
     ConfigDict,
     Field,
     PositiveFloat,
+    PrivateAttr,
     SerializationInfo,
     SerializerFunctionWrapHandler,
     Strict,
@@ -51,12 +52,17 @@ type StacExtensionIdentifier = Annotated[
     StringConstraints(min_length=1, max_length=100, pattern=r"^[-_.:/a-zA-Z0-9]+$"),  # TODO: URI?
 ]
 
-
+type ZeroTo90 = Annotated[float, Ge(0.0), Le(90.0)]
+type ZeroTo360 = Annotated[float, Ge(0.0), Le(360.0)]
+type Negative90To90 = Annotated[float, Ge(-90.0), Le(90.0)]
 type Percentage = Annotated[float, Ge(0.0), Le(100)]
-
 type Lat = Annotated[float, Ge(-90.0), Le(90)]
 type Lon = Annotated[float, Ge(-180.0), Le(180)]
 type Elevation = Annotated[float, Ge(-10_000_000.0), Le(10_000_000.0)]
+
+
+class StacBaseModel(BaseModel):
+    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class Position2D(NamedTuple):
@@ -77,7 +83,7 @@ type PolygonCoordinates = Annotated[list[LinearRingCoordinates], Field(min_lengt
 type MultiPolygonCoordinates = Annotated[list[PolygonCoordinates], Field(min_length=1, max_length=2)]
 
 
-class Polygon(BaseModel):
+class Polygon(StacBaseModel):
     type: Literal["Polygon"]
     coordinates: PolygonCoordinates
 
@@ -91,10 +97,8 @@ class Polygon(BaseModel):
 
     #         return coordinates
 
-    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
-
-class MultiPolygon(BaseModel):
+class MultiPolygon(StacBaseModel):
     type: Literal["MultiPolygon"]
     coordinates: MultiPolygonCoordinates
 
@@ -106,10 +110,8 @@ class MultiPolygon(BaseModel):
 
     #     #         return coordinates
 
-    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
-
-class BBox2d(BaseModel):
+class BBox2d(StacBaseModel):
     # [sw_lon, sw_lat, ne_lon, ne_lat]
     w_lon: Lon
     s_lat: Lat
@@ -127,8 +129,6 @@ class BBox2d(BaseModel):
         return [self.w_lon, self.s_lat, self.e_lon, self.n_lat]
 
     # TODO: loader for array
-
-    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 class BBox3d(BBox2d):
@@ -177,11 +177,7 @@ type Title = Annotated[str, StringConstraints(min_length=1, max_length=100), Str
 type Description = Annotated[str, StringConstraints(min_length=1, max_length=10000), Strict()]
 
 
-class StacElement(BaseModel):
-    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
-
-
-class Commons(StacElement): ...
+class Commons(StacBaseModel): ...
 
 
 type Rel = Annotated[str, StringConstraints(min_length=1, max_length=256), Strict()]
@@ -254,7 +250,7 @@ type AssetRole = Annotated[str, StringConstraints(pattern=r"^[-a-zA-Z0-9]+$"), S
 type ProviderRole = Annotated[str, StringConstraints(pattern=r"^[-a-zA-Z0-9]+$"), Strict()]
 
 
-class NamelessAsset(BaseModel):
+class NamelessAsset(StacBaseModel):
     # https://github.com/radiantearth/stac-spec/blob/master/commons/assets.md
 
     # REQUIRED. URI to the asset object. Relative and absolute URI are both allowed. Trailing slashes are significant.
@@ -290,7 +286,6 @@ class NamelessAsset(BaseModel):
     # TODO : validate
     #   - bands https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#bands
     #   - eo:bands and raster:bands -> bands
-    model_config = ConfigDict(extra="ignore", frozen=True, strict=True)
 
 
 type AssetName = Annotated[str, StringConstraints(min_length=1, max_length=32, pattern=r"^[-_.a-zA-Z0-9]+$"), Strict()]
@@ -356,8 +351,12 @@ class Band(BaseModel):
     description: Description
 
 
-class ItemExtension(BaseModel):
-    id: StacExtensionIdentifier
+class ItemExtension(StacBaseModel):
+    _id: StacExtensionIdentifier = PrivateAttr("")
+
+    @property
+    def id(self) -> StacExtensionIdentifier:
+        return self._id
 
 
 class Item(BaseModel):
@@ -447,7 +446,13 @@ class Item(BaseModel):
         else:
             item |= {"stac_extensions": [x.id for x in self.extensions]}
         item["assets"] = {asset.name: NamelessAsset.from_an(asset) for asset in item["assets"]}
-        item |= {"properties": {k: v for k, v in self if k not in self._top_level and k not in self._exclude}}
+
+        properties: JSONObject = {}
+        item["properties"] = properties
+        properties |= {k: v for k, v in self if k not in self._top_level and k not in self._exclude}
+
+        for ext in self.extensions:
+            properties |= ext.model_dump(by_alias=True)
 
         return nxt(item)
 
@@ -625,18 +630,27 @@ class Item(BaseModel):
 
 
 class EOExtension(ItemExtension):
-    id: StacExtensionIdentifier = "https://stac-extensions.github.io/eo/v2.0.0/schema.json"
+    _id: StacExtensionIdentifier = PrivateAttr("https://stac-extensions.github.io/eo/v2.0.0/schema.json")
     cloud_cover: Percentage | None = Field(alias="eo:cloud_cover", default=None)
     snow_cover: Percentage | None = Field(alias="eo:snow_cover", default=None)
 
-
-type ZeroTo90 = Annotated[float, Ge(0.0), Le(90.0)]
-type ZeroTo360 = Annotated[float, Ge(0.0), Le(360.0)]
-type Negative90To90 = Annotated[float, Ge(-90.0), Le(90.0)]
+    @classmethod
+    def create(
+        cls,
+        *,
+        cloud_cover: Percentage | None = None,
+        snow_cover: Percentage | None = None,
+    ) -> Self:
+        return cls.model_validate(
+            {
+                "eo:cloud_cover": cloud_cover,
+                "eo:snow_cover": snow_cover,
+            }
+        )
 
 
 class ViewExtension(ItemExtension):
-    id: StacExtensionIdentifier = "https://stac-extensions.github.io/view/v1.0.0/schema.json"
+    _id: StacExtensionIdentifier = PrivateAttr("https://stac-extensions.github.io/view/v1.0.0/schema.json")
 
     # The angle from the sensor between nadir (straight down) and the scene center. Measured in degrees (0-90).
     off_nadir: ZeroTo90 | None = Field(alias="view:off_nadir", default=None)
@@ -657,3 +671,23 @@ class ViewExtension(ItemExtension):
     # in degrees (-90-90). Negative values indicate the sun is below the horizon, e.g. sun elevation of -10° means the
     # data was captured during nautical twilight.
     sun_elevation: Negative90To90 | None = Field(alias="view:sun_elevation", default=None)
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        off_nadir: ZeroTo90 | None = None,
+        incidence_angle: ZeroTo90 | None = None,
+        azimuth: ZeroTo360 | None = None,
+        sun_azimuth: ZeroTo360 | None = None,
+        sun_elevation: Negative90To90 | None = None,
+    ) -> Self:
+        return cls.model_validate(
+            {
+                "view:off_nadir": off_nadir,
+                "view:incidence_angle": incidence_angle,
+                "view:azimuth": azimuth,
+                "view:sun_azimuth": sun_azimuth,
+                "view:sun_elevation": sun_elevation,
+            }
+        )

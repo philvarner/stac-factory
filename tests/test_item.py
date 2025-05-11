@@ -9,7 +9,7 @@ import pytest
 from pydantic import ValidationError
 
 from stac_factory.constants import AssetRole, HttpMethod, LinkRelation, MediaType
-from stac_factory.models import Asset, EOExtension, Item, Link
+from stac_factory.models import Asset, EOExtension, Item, Link, ViewExtension
 
 
 def test_item_with_bbox3d() -> None:
@@ -512,13 +512,21 @@ def test_item_create_typical() -> None:
             ),
         ],
         datetime=pystac.utils.str_to_datetime("2021-01-01T00:00:00Z"),
-        extensions=[EOExtension(cloud_cover=3.14, snow_cover=2.7)],
+        extensions=[
+            EOExtension.create(cloud_cover=3.14, snow_cover=2.7),
+            ViewExtension.create(
+                off_nadir=10.5, incidence_angle=15.3, azimuth=230.1, sun_azimuth=120.5, sun_elevation=65.2
+            ),
+        ],
     )
 
     assert item.model_dump(mode="json") == {
         "type": "Feature",
         "stac_version": "1.1.0",
-        "stac_extensions": ["https://stac-extensions.github.io/eo/v2.0.0/schema.json"],
+        "stac_extensions": [
+            "https://stac-extensions.github.io/eo/v2.0.0/schema.json",
+            "https://stac-extensions.github.io/view/v1.0.0/schema.json",
+        ],
         "id": "normal-item-1",
         "geometry": {
             "type": "Polygon",
@@ -526,11 +534,13 @@ def test_item_create_typical() -> None:
         },
         "bbox": [100.0, 0.0, 101.0, 1.0],
         "properties": {
+            "title": None,
+            "description": None,
             "bands": None,
             "constellation": None,
             "created": None,
             "datetime": "2021-01-01T00:00:00Z",
-            "description": None,
+            "start_datetime": None,
             "end_datetime": None,
             "gsd": None,
             "instruments": None,
@@ -540,9 +550,14 @@ def test_item_create_typical() -> None:
             "platform": None,
             "providers": None,
             "roles": None,
-            "start_datetime": None,
-            "title": None,
             "updated": None,
+            "eo:cloud_cover": 3.14,
+            "eo:snow_cover": 2.7,
+            "view:azimuth": 230.1,
+            "view:incidence_angle": 15.3,
+            "view:off_nadir": 10.5,
+            "view:sun_azimuth": 120.5,
+            "view:sun_elevation": 65.2,
         },
         "links": [
             {
