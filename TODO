@@ -1,8 +1,5 @@
 # Todo
 
-- cloud cover not serizlied out
-- View Extension - test
-- is `id` added to properties?
 - Extensions - populate from deserialized fields -- pre-register? sentinel-2 missing extensions
 - start_datetime and end_datetime -- dt within sdt edt, null rules
 - test geometry and bbox variations
