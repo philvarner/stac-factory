@@ -150,6 +150,45 @@ E           For further information visit https://errors.pydantic.dev/2.11/v/les
 
 <!-- markdownlint-enable MD013 -->
 
+## CLI Example
+
+Installing the project will add a script `stac-factory` to the path.
+
+Validate a valid item:
+
+```text
+$ stac-factory validate --filename tests/fixtures/typical.json
+Success!
+```
+
+Validate an invalid item:
+
+```sh
+stac-factory validate --filename tests/fixtures/invalid.json
+Failure:
+[
+  {
+    "type": "value_error",
+...
+```
+
+Dump the JSON Schema for the Pydantic model:
+
+```text
+$ stac-factory json-schema
+{
+  "$defs": {
+    "Asset": {
+      "properties": {
+        "href": {
+          "$ref": "#/$defs/URI"
+        },
+        "title": {
+          "anyOf": [
+            {
+...
+```
+
 ## Design Principles
 
 Opinionated.
