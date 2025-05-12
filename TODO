@@ -1,17 +1,17 @@
 # Todo
 
-- Extensions - populate from deserialized fields -- pre-register? sentinel-2 missing extensions
+- Extensions - populate from deserialized fields -- pre-register? sentinel-2 missing extensions?
 - start_datetime and end_datetime -- dt within sdt edt, null rules
 - test geometry and bbox variations
 - validate geometry or bbox
 - antimeridian checking
-- difference between null and undefined/"don't include"
-- coverage to 100%
+- difference between null and undefined/"don't include" -- exclude_unset
 - robust developing section
 - pypi
 
 ----- Release -------------------------------------------------------
 
+- coverage to 100%
 - CM Statistics
 - convert dunders to colon -- handle properiteary extensions wo schema
 

@@ -582,7 +582,7 @@ def test_item_create_typical() -> None:
                 "type": "application/json",
                 "title": "an item",
                 "description": None,
-                "method": "get",
+                "method": "GET",
                 "headers": None,
                 "body": None,
             }

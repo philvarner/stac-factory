@@ -2,15 +2,15 @@ from enum import StrEnum, auto
 
 
 class HttpMethod(StrEnum):
-    GET = auto()
-    POST = auto()
-    PUT = auto()
-    DELETE = auto()
-    PATCH = auto()
-    HEAD = auto()
-    OPTIONS = auto()
-    TRACE = auto()
-    CONNECT = auto()
+    GET = "GET"
+    POST = "POST"
+    PUT = "PUT"
+    DELETE = "DELETE"
+    PATCH = "PATCH"
+    HEAD = "HEAD"
+    OPTIONS = "OPTIONS"
+    TRACE = "TRACE"
+    CONNECT = "CONNECT"
 
 
 class AssetRole(StrEnum):
@@ -22,31 +22,31 @@ class AssetRole(StrEnum):
     date = auto()
     graphic = auto()
     data_mask = auto()
-    snow_ice = auto()
-    land_water = auto()
-    water_mask = auto()
-    iso_19115 = auto()
+    snow_ice = "snow-ice"
+    land_water = "land-water"
+    water_mask = "water-mask"
+    iso_19115 = "iso-19115"
 
     # from EO
     reflectance = auto()
     temperature = auto()
     saturation = auto()
     cloud = auto()
-    cloud_shadow = auto()
+    cloud_shadow = "cloud-shadow"
 
     # from View
-    incidence_angle = auto()
+    incidence_angle = "incidence-angle"
     azimuth = auto()
-    sun_azimuth = auto()
-    sun_elevation = auto()
-    terrain_shadow = auto()
-    terrain_occlusion = auto()
-    terrain_illumination = auto()
+    sun_azimuth = "sun-azimuth"
+    sun_elevation = "sun-elevation"
+    terrain_shadow = "terrain-shadow"
+    terrain_occlusion = "terrain-occlusion"
+    terrain_illumination = "terrain-illumination"
 
     # from SAR
-    local_incidence_angle = auto()
-    ellipsoid_incidence_angle = auto()
-    noise_power = auto()
+    local_incidence_angle = "local-incidence-angle"
+    ellipsoid_incidence_angle = "ellipsoid-incidence-angle"
+    noise_power = "noise-power"
     amplitude = auto()
     magnitude = auto()
     sigma0 = auto()
