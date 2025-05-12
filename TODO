@@ -1,10 +1,9 @@
 # Todo
 
-- Extensions - populate from deserialized fields -- pre-register? sentinel-2 missing extensions?
 - start_datetime and end_datetime -- dt within sdt edt, null rules
-- test geometry and bbox variations
-- validate geometry or bbox
+- geometry and bbox variations
 - antimeridian checking
+- Extensions - populate from deserialized fields -- pre-register? sentinel-2 missing extensions?
 - difference between null and undefined/"don't include" -- exclude_unset
 - robust developing section
 - pypi
