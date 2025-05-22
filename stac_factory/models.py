@@ -389,14 +389,14 @@ class Item(BaseModel):
         assets: list[Asset],
         collection: CollectionIdentifier | None,
         datetime: UtcDatetime | None,
-        title: Title | None = None,
-        description: Description | None = None,
-        keywords: list[ShortStr] | None = None,
-        roles: list[ShortStr] | None = None,
         start_datetime: UtcDatetime | None = None,
         end_datetime: UtcDatetime | None = None,
         created: UtcDatetime | None = None,
         updated: UtcDatetime | None = None,
+        title: Title | None = None,
+        description: Description | None = None,
+        keywords: list[ShortStr] | None = None,
+        roles: list[ShortStr] | None = None,
         license: LicenseStr | None = None,
         providers: list[Provider] | None = None,
         platform: ShortStr | None = None,
@@ -418,14 +418,14 @@ class Item(BaseModel):
                 "assets": assets,
                 "collection": collection,
                 "datetime": datetime,
-                "title": title,
-                "description": description,
-                "keywords": keywords,
-                "roles": roles,
                 "start_datetime": start_datetime,
                 "end_datetime": end_datetime,
                 "created": created,
                 "updated": updated,
+                "title": title,
+                "description": description,
+                "keywords": keywords,
+                "roles": roles,
                 "license": license,
                 "providers": providers,
                 "platform": platform,
@@ -551,17 +551,29 @@ class Item(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def populate_datetimes_from_properties(cls, data: dict[str, Any]) -> dict[str, Any]:
-        for dt_type in ["datetime", "start_datetime", "end_datetime"]:
-            if isinstance(data, dict) and (p := data.get("properties")) and (dt := p.pop(dt_type, None)):
-                data[dt_type] = dt
-        return data
+    def validate_datetimes(cls, data: dict[str, Any]) -> dict[str, Any]:
+        for x in ["datetime", "start_datetime", "end_datetime"]:
+            if isinstance(data, dict) and (p := data.get("properties")):
+                data[x] = p.pop(x, None)
 
-    # todo: validate
-    # datetime is not null or all three defined and s & e not null
-    #                         "datetime",
-    #                     "start_datetime",
-    #                     "end_datetime"
+        dt = data.get("datetime")
+        sdt = data.get("start_datetime")
+        edt = data.get("end_datetime")
+
+        if not ((sdt and edt) or (dt and sdt is None and edt is None)):
+            raise ValueError("datetime must be not null or all of datetime, start_datetime, end_datetime")
+
+        if sdt and edt:
+            if sdt > edt:
+                raise ValueError("start_datetime is after end_datetime")
+
+            if dt:
+                if dt < sdt:
+                    raise ValueError("datetime is before start_datetime")
+                if dt > edt:
+                    raise ValueError("datetime is before start_datetime")
+
+        return data
 
     #############################################################################################
     ## Commons https://github.com/radiantearth/stac-spec/blob/master/commons/common-metadata.md #

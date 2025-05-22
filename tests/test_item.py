@@ -608,6 +608,60 @@ def test_item_with_duplicate_stac_extensions() -> None:
         Item.model_validate(item_dict)
 
 
-# def test_json_schema() -> None:
-#     fixture_dir = Path(__file__).parent.absolute() / "fixtures"
-#     Path(fixture_dir / "schema.json").write_text(json.dumps(Item.model_json_schema(), indent=2))
+@pytest.mark.parametrize(
+    ("datetime", "start_datetime", "end_datetime"),
+    [
+        (None, None, None),
+        ("2021-01-02T00:00:00Z", None, "2021-01-03T00:01:00Z"),
+        ("2021-01-02T00:00:00Z", "2021-01-01T00:00:00Z", None),
+        (None, "2021-01-01T00:00:00Z", None),
+        ("2022-01-02T00:00:00Z", "2021-01-01T00:00:00Z", "2021-01-03T00:01:00Z"),
+        ("2020-01-02T00:00:00Z", "2021-01-01T00:00:00Z", "2021-01-03T00:01:00Z"),
+        (None, "2021-01-03T00:01:00Z", "2021-01-01T00:00:00Z"),
+    ],
+    ids=[
+        "none specified",
+        "missing start",
+        "missing end",
+        "missing dt and end",
+        "datetime after end",
+        "datetime before start",
+        "end before start",
+    ],
+)
+def test_item_with_invalid_datetime_combinations(
+    datetime: str | None, start_datetime: str | None, end_datetime: str | None
+) -> None:
+    fixture_dir = Path(__file__).parent.absolute() / "fixtures"
+    item_dict = json.loads(Path(fixture_dir / "minimal.json").read_text())
+
+    item_dict["properties"]["datetime"] = datetime
+    item_dict["properties"]["start_datetime"] = start_datetime
+    item_dict["properties"]["end_datetime"] = end_datetime
+    with pytest.raises(ValidationError):
+        Item.model_validate(item_dict)
+
+
+@pytest.mark.parametrize(
+    ("datetime", "start_datetime", "end_datetime"),
+    [
+        ("2021-01-02T00:00:00Z", "2021-01-01T00:00:00Z", "2021-01-03T00:01:00Z"),
+        ("2021-01-02T00:00:00Z", None, None),
+        (None, "2021-01-01T00:00:00Z", "2021-01-03T00:01:00Z"),
+    ],
+    ids=[
+        "all 3 defined",
+        "only datetime defined",
+        "only start and end defined",
+    ],
+)
+def test_item_with_valid_datetime_combinations(
+    datetime: str | None, start_datetime: str | None, end_datetime: str | None
+) -> None:
+    fixture_dir = Path(__file__).parent.absolute() / "fixtures"
+    item_dict = json.loads(Path(fixture_dir / "minimal.json").read_text())
+
+    item_dict["properties"]["datetime"] = datetime
+    item_dict["properties"]["start_datetime"] = start_datetime
+    item_dict["properties"]["end_datetime"] = end_datetime
+    Item.model_validate(item_dict)
