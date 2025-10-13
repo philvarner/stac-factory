@@ -25,7 +25,7 @@ jobs:
           # - macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Sync
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
       - name: Install with min requirements
@@ -63,7 +63,7 @@ jobs:
   #       shell: bash -el {0}
   #   steps:
   #     - uses: actions/checkout@v4
-  #     - uses: astral-sh/setup-uv@v5
+  #     - uses: astral-sh/setup-uv@v7
   #     - name: Install pandoc
   #       run: sudo apt-get install -y pandoc
   #     - name: Sync
