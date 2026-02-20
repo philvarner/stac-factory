@@ -92,7 +92,6 @@ class Polygon(StacBaseModel):
     type: Literal["Polygon"]
     coordinates: PolygonCoordinates
 
-    # within 90/180
     @field_validator("coordinates")
     @classmethod
     def validate_coordinates(cls, coordinates: PolygonCoordinates) -> PolygonCoordinates:
