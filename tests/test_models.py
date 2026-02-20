@@ -1,6 +1,6 @@
 import pytest
 
-from pydantic import ValidationError
+from pydantic import AnyUrl, ValidationError
 
 from stac_factory.constants import AssetRole, HttpMethod, LinkRelation, MediaType
 from stac_factory.models import Asset, BBox2d, BBox3d, Link, Polygon
@@ -56,7 +56,7 @@ def test_polygon() -> None:
 
 
 def test_polygon_with_holes_raises() -> None:
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError, match=".*List should have at most 1 item after validation, not 2.*"):
         Polygon.model_validate(
             {
                 "type": "Polygon",
@@ -80,9 +80,59 @@ def test_polygon_with_holes_raises() -> None:
         )
 
 
+def test_polygon_self_intersecting_raises() -> None:
+    with pytest.raises(ValidationError, match=".*Polygon is self-intersecting.*"):
+        Polygon.model_validate(
+            {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [0.0, 0.0],
+                        [1.0, 1.0],
+                        [1.0, 0.0],
+                        [0.0, 1.0],
+                        [0.0, 0.0],
+                    ],
+                ],
+            },
+        )
+
+
+def test_polygon_wound_cw_raises() -> None:
+    with pytest.raises(ValidationError, match=".*Polygon exterior ring must be wound counter-clockwise.*"):
+        Polygon.model_validate(
+            {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [0.0, 1.0],
+                        [1.0, 1.0],
+                        [1.0, 0.0],
+                        [0.0, 0.0],
+                        [0.0, 1.0],
+                    ],
+                ],
+            },
+        )
+
+
+def test_polygon_crosses_antimeridian_raises() -> None:
+    with pytest.raises(ValidationError, match=".*Polygon crosses the antimeridian.*"):
+        Polygon.model_validate(
+            {"type": "Polygon", "coordinates": [[[170, 40], [-170, 40], [-170, 50], [170, 50], [170, 40]]]}
+        )
+
+
+def test_polygon_outside_180_90_raises() -> None:
+    with pytest.raises(ValidationError, match=".*Input should be less than or equal to 180.*"):
+        Polygon.model_validate(
+            {"type": "Polygon", "coordinates": [[[170, 40], [190, 40], [190, 50], [170, 50], [170, 40]]]}
+        )
+
+
 def test_link_create() -> None:
     Link.create(
-        href="https://api.example.com/x.json",
+        href=AnyUrl("https://api.example.com/x.json"),
         rel=LinkRelation.canonical,
         type=MediaType.JSON,
         title="an item",
@@ -95,7 +145,7 @@ def test_link_create() -> None:
 def test_asset_create() -> None:
     Asset(
         name="foo",
-        href="https://api.example.com/x.json",
+        href=AnyUrl("https://api.example.com/x.json"),
         title="an item",
         description="an item description",
         type=MediaType.JSON,
