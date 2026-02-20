@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "stac-factory"
 version = "0.1.0"
@@ -8,10 +12,18 @@ maintainers = [{ name = "Phil Varner", email = "philvarner@gmail.com" }]
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 
+
 dependencies = [
+    "antimeridian>=0.4.5",
     "cyclopts>=3.16.0",
     "pydantic>=2.11.3",
 ]
+
+[project.urls]
+Homepage = "https://github.com/philvarner/stac-factory"
+Repository = "https://github.com/philvarner/stac-factory"
+Issues = "https://github.com/philvarner/stac-factory/issues"
+
 
 [dependency-groups]
 dev = [
@@ -34,9 +46,8 @@ dev = [
 [project.scripts]
 stac-factory = "stac_factory.cli.__main__:app"
 
-
 [tool.pytest.ini_options]
-addopts = "-sv --cov stac_factory --cov-report html --cov-report term --cov-fail-under 99"
+addopts = "-sv --cov stac_factory --cov-report html --cov-report term --cov-fail-under 99 -Werror"
 
 [tool.mypy]
 ignore_missing_imports = true
