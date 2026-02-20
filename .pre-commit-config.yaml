@@ -7,14 +7,12 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
-        verbose: true
       - id: mypy
         name: Check typing with mypy
         entry: mypy .
         language: system
         types: [python]
         pass_filenames: false
-        verbose: true
       # - id: pymarkdown
       #   name: Markdownlint
       #   description: Run markdownlint on Markdown files
