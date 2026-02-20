@@ -1,6 +1,9 @@
 from datetime import timezone
 from typing import Annotated, Any, Literal, NamedTuple, Self
 
+import antimeridian
+import shapely
+
 from annotated_types import Ge, Le
 from pydantic import (
     AfterValidator,
@@ -19,6 +22,8 @@ from pydantic import (
     model_serializer,
     model_validator,
 )
+from shapely.geometry import MultiPolygon as ShapelyMultiPolygon
+from shapely.geometry import Polygon as ShapelyPolygon
 
 from stac_factory.constants import HttpMethod
 
@@ -87,15 +92,23 @@ class Polygon(StacBaseModel):
     type: Literal["Polygon"]
     coordinates: PolygonCoordinates
 
-    # simplify
-    # validate no crossing, wound correctly, within 90/180, doesn't cross antimeridian
-    #     @field_validator("coordinates")
-    #     def check_closure(cls, coordinates: List) -> List:
-    #         """Validate that Polygon is closed (first and last coordinate are the same)."""
-    #         if any(ring[-1] != ring[0] for ring in coordinates):
-    #             raise ValueError("All linear rings have the same start and end coordinates")
+    @field_validator("coordinates")
+    @classmethod
+    def validate_coordinates(cls, coordinates: PolygonCoordinates) -> PolygonCoordinates:
+        exterior = [(pos.longitude, pos.latitude) for pos in coordinates[0]]
+        shapely_polygon = ShapelyPolygon(exterior)
 
-    #         return coordinates
+        if not shapely.is_valid(shapely_polygon):
+            raise ValueError(f"Polygon is self-intersecting: {shapely.is_valid_reason(shapely_polygon)}")
+
+        if isinstance(antimeridian.fix_polygon(shapely_polygon, fix_winding=False), ShapelyMultiPolygon):
+            raise ValueError("Polygon crosses the antimeridian; use MultiPolygon instead")
+
+        # check CCW after checking antimeridian, as they're not distinguishable other than by size
+        if not shapely.is_ccw(shapely_polygon.exterior):
+            raise ValueError("Polygon exterior ring must be wound counter-clockwise (CCW) per RFC 7946")
+
+        return coordinates
 
 
 class MultiPolygon(StacBaseModel):
@@ -272,14 +285,14 @@ class NamelessAsset(StacBaseModel):
     # "$ref": "common.json"
 
     @classmethod
-    def from_an(cls, asset: "Asset") -> Self:
+    def from_an(cls, asset: dict[str, Any]) -> Self:
         return cls.model_validate(
             {
-                "href": asset.href,
-                "title": asset.title,
-                "description": asset.description,
-                "type": asset.type,
-                "roles": asset.roles,
+                "href": asset["href"],
+                "title": asset["title"],
+                "description": asset["description"],
+                "type": asset["type"],
+                "roles": asset["roles"],
             },
         )
 
@@ -440,21 +453,21 @@ class Item(BaseModel):
 
     @model_serializer(mode="wrap", when_used="json")
     def ser_model(self, nxt: SerializerFunctionWrapHandler, _info: SerializationInfo) -> dict[str, Any]:
-        item = {k: v for k, v in self if k in self._top_level}
+        base = nxt(self)
+        item = {k: v for k, v in base.items() if k in self._top_level}
         if self.stac_extensions:
             item |= {"stac_extensions": self.stac_extensions}
         else:
             item |= {"stac_extensions": [x.id for x in self.extensions]}
-        item["assets"] = {asset.name: NamelessAsset.from_an(asset) for asset in item["assets"]}
 
-        properties: JSONObject = {}
-        item["properties"] = properties
-        properties |= {k: v for k, v in self if k not in self._top_level and k not in self._exclude}
+        item["assets"] = {asset["name"]: NamelessAsset.from_an(asset) for asset in item["assets"]}
 
+        properties = {k: v for k, v in base.items() if k not in self._top_level and k not in self._exclude}
         for ext in self.extensions:
-            properties |= ext.model_dump(by_alias=True)
+            properties |= ext.model_dump(mode="json", by_alias=True)
 
-        return nxt(item)
+        item["properties"] = properties
+        return item
 
     extensions: list[ItemExtension] = Field(default_factory=list)
 

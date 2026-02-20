@@ -78,3 +78,7 @@ Prefer functional-style Python:
 - `tests/fixtures/` contains real and synthetic STAC JSON for round-trip testing
 - `test_models.py` covers individual model types; `test_item.py` covers end-to-end `Item` creation and serialization
 - Nox runs the test suite on Python 3.12 and 3.13
+
+## Other
+
+- Add changes to @CHANGELOG.md
