@@ -43,6 +43,19 @@ just be aware of these differences. (todo: enumerate the differences)
 
 STAC Factory is published as `stac-factory` in PyPi.
 
+```shell
+uv add stac-factory
+```
+
+## Publishing
+
+Build and publish to PyPI:
+
+```shell
+uv build
+uv publish
+```
+
 ## Why yet another Python STAC object model library?
 
 Other libraries, such as pystac and stac-pydantic, are built for general-purpose use,

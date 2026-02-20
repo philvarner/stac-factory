@@ -1,12 +1,16 @@
 # Todo
 
-- geometry and bbox variations
-- antimeridian checking
+- validate Polygon and Multipolygon antimeridian checking
 - Extensions - populate from deserialized fields -- pre-register? sentinel-2 missing extensions?
   - warn on leftover
 - difference between null and undefined/"don't include" -- exclude_unset
 - robust developing section
 - pypi
+  One-time PyPI setup required: Go to your PyPI project → Publishing → Add a trusted publisher with:
+  - Owner: philvarner
+  - Repository: stac-factory
+  - Workflow: release.yml
+  - Environment: pypi
 
 ----- Release -------------------------------------------------------
 
