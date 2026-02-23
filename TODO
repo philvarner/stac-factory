@@ -1,25 +1,5 @@
 # Todo
 
-- validate Polygon and Multipolygon antimeridian checking
-- Extensions - populate from deserialized fields -- pre-register? sentinel-2 missing extensions?
-  - warn on leftover
-- difference between null and undefined/"don't include" -- exclude_unset
-- robust developing section
-- pypi
-  One-time PyPI setup required: Go to your PyPI project → Publishing → Add a trusted publisher with:
-  - Owner: philvarner
-  - Repository: stac-factory
-  - Workflow: release.yml
-  - Environment: pypi
-
------ Release -------------------------------------------------------
-
-- asset extension
-- constructor has tighter typing that validate
-- coverage to 100%
-- CM Statistics
-- convert dunders to colon -- handle properiteary extensions wo schema
-
 Sentinel-2 extensions
 "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
 "https://stac-extensions.github.io/file/v2.1.0/schema.json",
@@ -31,11 +11,6 @@ Sentinel-2 extensions
 "https://stac-extensions.github.io/sentinel-2/v1.0.0/schema.json",
 "https://stac-extensions.github.io/storage/v1.0.0/schema.json",
 "https://stac-extensions.github.io/view/v1.0.0/schema.json"
-
-- benchmarking
-- hypothesis
-
-- add more validation to item model
 
 - asset thumbnail png, jpeg, jpg, or webp
 

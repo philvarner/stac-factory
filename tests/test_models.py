@@ -3,7 +3,7 @@ import pytest
 from pydantic import AnyUrl, ValidationError
 
 from stac_factory.constants import AssetRole, HttpMethod, LinkRelation, MediaType
-from stac_factory.models import Asset, BBox2d, BBox3d, Link, Polygon
+from stac_factory.models import Asset, BBox2d, BBox3d, Link, MultiPolygon, Polygon
 
 
 def test_bbox2d() -> None:
@@ -127,6 +127,55 @@ def test_polygon_outside_180_90_raises() -> None:
     with pytest.raises(ValidationError, match=".*Input should be less than or equal to 180.*"):
         Polygon.model_validate(
             {"type": "Polygon", "coordinates": [[[170, 40], [190, 40], [190, 50], [170, 50], [170, 40]]]}
+        )
+
+
+def test_multipolygon_self_intersecting_raises() -> None:
+    with pytest.raises(ValidationError, match=".*Polygon 0 is self-intersecting.*"):
+        MultiPolygon.model_validate(
+            {
+                "type": "MultiPolygon",
+                "coordinates": [
+                    [[[0.0, 0.0], [1.0, 1.0], [1.0, 0.0], [0.0, 1.0], [0.0, 0.0]]],
+                ],
+            }
+        )
+
+
+def test_multipolygon_wound_cw_raises() -> None:
+    with pytest.raises(ValidationError, match=".*Polygon 0 exterior ring must be wound counter-clockwise.*"):
+        MultiPolygon.model_validate(
+            {
+                "type": "MultiPolygon",
+                "coordinates": [
+                    [[[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0], [0.0, 1.0]]],
+                ],
+            }
+        )
+
+
+def test_multipolygon_crosses_antimeridian_raises() -> None:
+    with pytest.raises(ValidationError, match=".*Polygon 0 crosses the antimeridian.*"):
+        MultiPolygon.model_validate(
+            {
+                "type": "MultiPolygon",
+                "coordinates": [
+                    [[[170.0, 40.0], [-170.0, 40.0], [-170.0, 50.0], [170.0, 50.0], [170.0, 40.0]]],
+                ],
+            }
+        )
+
+
+def test_multipolygon_invalid() -> None:
+    with pytest.raises(ValidationError, match=".*MultiPolygon is not valid:.*"):
+        MultiPolygon.model_validate(
+            {
+                "type": "MultiPolygon",
+                "coordinates": [
+                    [[[0.0, 0.0], [2.0, 0.0], [2.0, 2.0], [0.0, 2.0], [0.0, 0.0]]],
+                    [[[1.0, 1.0], [3.0, 1.0], [3.0, 3.0], [1.0, 3.0], [1.0, 1.0]]],
+                ],
+            }
         )
 
 

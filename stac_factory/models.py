@@ -98,14 +98,14 @@ class Polygon(StacBaseModel):
         exterior = [(pos.longitude, pos.latitude) for pos in coordinates[0]]
         shapely_polygon = ShapelyPolygon(exterior)
 
-        if not shapely.is_valid(shapely_polygon):
+        if not shapely_polygon.is_valid:
             raise ValueError(f"Polygon is self-intersecting: {shapely.is_valid_reason(shapely_polygon)}")
 
         if isinstance(antimeridian.fix_polygon(shapely_polygon, fix_winding=False), ShapelyMultiPolygon):
             raise ValueError("Polygon crosses the antimeridian; use MultiPolygon instead")
 
         # check CCW after checking antimeridian, as they're not distinguishable other than by size
-        if not shapely.is_ccw(shapely_polygon.exterior):
+        if not shapely_polygon.exterior.is_ccw:
             raise ValueError("Polygon exterior ring must be wound counter-clockwise (CCW) per RFC 7946")
 
         return coordinates
@@ -115,13 +115,31 @@ class MultiPolygon(StacBaseModel):
     type: Literal["MultiPolygon"]
     coordinates: MultiPolygonCoordinates
 
-    #     #     @field_validator("coordinates")
-    #     #     def check_closure(cls, coordinates: List) -> List:
-    #     #         """Validate that Polygon is closed (first and last coordinate are the same)."""
-    #     #         if any(ring[-1] != ring[0] for polygon in coordinates for ring in polygon):
-    #     #             raise ValueError("All linear rings have the same start and end coordinates")
+    @field_validator("coordinates")
+    @classmethod
+    def validate_coordinates(cls, coordinates: MultiPolygonCoordinates) -> MultiPolygonCoordinates:
+        shapely_polygons: list[ShapelyPolygon] = []
 
-    #     #         return coordinates
+        for i, polygon_coords in enumerate(coordinates):
+            exterior = [(pos.longitude, pos.latitude) for pos in polygon_coords[0]]
+            shapely_polygon = ShapelyPolygon(exterior)
+            shapely_polygons.append(shapely_polygon)
+
+            if not shapely_polygon.is_valid:
+                raise ValueError(f"Polygon {i} is self-intersecting: {shapely.is_valid_reason(shapely_polygon)}")
+
+            if isinstance(antimeridian.fix_polygon(shapely_polygon, fix_winding=False), ShapelyMultiPolygon):
+                raise ValueError(f"Polygon {i} crosses the antimeridian")
+
+            if not shapely_polygon.exterior.is_ccw:
+                raise ValueError(f"Polygon {i} exterior ring must be wound counter-clockwise (CCW) per RFC 7946")
+
+        shapely_mp = ShapelyMultiPolygon(shapely_polygons)
+
+        if not shapely_mp.is_valid:
+            raise ValueError(f"MultiPolygon is not valid: {shapely.is_valid_reason(shapely_mp)}")
+
+        return coordinates
 
 
 class BBox2d(StacBaseModel):

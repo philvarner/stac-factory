@@ -1,5 +1,6 @@
 .python-version
 **/*.private*
+.claude/settings.local.json
 
 # Ignore everything JetBrains
 .idea
